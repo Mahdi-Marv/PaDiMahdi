@@ -61,7 +61,7 @@ def main():
     model = resnet18(pretrained=True, progress=True)
     t_d = 448
     d = 100
-    
+
     model.to(device)
     model.eval()
     random.seed(1024)
