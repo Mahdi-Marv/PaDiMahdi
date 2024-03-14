@@ -113,6 +113,7 @@ def main():
             embedding_vectors = train_outputs['layer1']
             for layer_name in ['layer2', 'layer3']:
                 embedding_vectors = embedding_concat(embedding_vectors, train_outputs[layer_name])
+                embedding_vectors = embedding_vectors.to(device)  # Ensure embedding_vectors is on GPU
 
             # randomly select d dimension
             embedding_vectors = torch.index_select(embedding_vectors, 1, idx)
