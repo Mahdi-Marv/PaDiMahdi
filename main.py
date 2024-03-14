@@ -64,6 +64,7 @@ def main():
         torch.cuda.manual_seed_all(1024)
 
     idx = torch.tensor(sample(range(0, t_d), d))
+    idx = torch.tensor(sample(range(0, t_d), d)).to(device)
 
     # set model's intermediate outputs
     outputs = []
