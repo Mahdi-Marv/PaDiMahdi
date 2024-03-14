@@ -39,8 +39,9 @@ def parse_args():
 
 def main():
 
-    args = parse_args()
 
+    args = parse_args()
+    print(use_cuda)
     print(device.type)
     print("CUDA Available:", torch.cuda.is_available())
     print("CUDA Devices:", torch.cuda.device_count())
@@ -56,6 +57,8 @@ def main():
         model = wide_resnet50_2(pretrained=True, progress=True)
         t_d = 1792
         d = 550
+
+    model = resnet18(pretrained=True, progress=True)
     model.to(device)
     model.eval()
     random.seed(1024)
@@ -64,7 +67,6 @@ def main():
         torch.cuda.manual_seed_all(1024)
 
     idx = torch.tensor(sample(range(0, t_d), d))
-    idx = torch.tensor(sample(range(0, t_d), d)).to(device)
 
     # set model's intermediate outputs
     outputs = []
@@ -113,7 +115,6 @@ def main():
             embedding_vectors = train_outputs['layer1']
             for layer_name in ['layer2', 'layer3']:
                 embedding_vectors = embedding_concat(embedding_vectors, train_outputs[layer_name])
-                embedding_vectors = embedding_vectors.to(device)  # Ensure embedding_vectors is on GPU
 
             # randomly select d dimension
             embedding_vectors = torch.index_select(embedding_vectors, 1, idx)
