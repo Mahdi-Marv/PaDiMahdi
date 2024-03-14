@@ -41,6 +41,8 @@ def main():
 
     args = parse_args()
 
+    print(device.type)
+    
     # load model
     if args.arch == 'resnet18':
         model = resnet18(pretrained=True, progress=True)
