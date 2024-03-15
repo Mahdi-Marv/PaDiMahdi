@@ -20,7 +20,7 @@ def center_paste(large_img, small_img):
     large_width, large_height = large_img.size
     small_width, small_height = small_img.size
 
-    print(large_img.size, small_img.size)
+    # print(large_img.size, small_img.size)
 
     # Calculate the top-left position
     left = (large_width - small_width) // 2
