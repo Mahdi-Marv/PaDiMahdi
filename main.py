@@ -39,19 +39,32 @@ def parse_args():
 
 
 def plot_random_test_sets(dataloader, shrink_factor=0.8, num_batches=5):
-    fig, ax = plt.subplots(1, num_batches, figsize=(15, 3))
+    fig, axs = plt.subplots(1, num_batches, figsize=(15, 3))
     fig.suptitle(f'Shrink Factor = {shrink_factor}', fontsize=16)
 
-    for batch_idx, (imgs, _) in enumerate(dataloader):
+    for batch_idx, data in enumerate(dataloader):
         if batch_idx >= num_batches:
             break
-        # Select the first image of each batch for simplicity
-        img = imgs[0].numpy()  # Assuming imgs are tensors, adjust if they are PIL Images
-        img = np.transpose(img, (1, 2, 0))  # Adjust dimensions for matplotlib (if necessary)
+        # Adjust unpacking here based on the actual data structure
+        imgs, _, _ = data  # This assumes the dataloader returns (imgs, labels, masks)
+
+        # Convert the image tensor to numpy array for plotting
+        img = imgs[0].detach().cpu().numpy()  # Ensure it's detached and on CPU
+        img = np.transpose(img, (1, 2, 0))  # Adjust dimensions for matplotlib
+
+        # Handle grayscale images (if necessary)
+        if img.shape[2] == 1:
+            img = np.squeeze(img, axis=2)
+
+        # Check if normalization is required for displaying the image correctly
+        if img.min() < 0:
+            # Normalize to [0, 1] if your images were normalized to some range e.g., [-1, 1]
+            img = (img - img.min()) / (img.max() - img.min())
 
         # Plotting
-        ax[batch_idx].imshow(img)
-        ax[batch_idx].axis('off')  # Turn off axis
+        ax = axs[batch_idx] if num_batches > 1 else axs
+        ax.imshow(img)
+        ax.axis('off')  # Turn off axis
 
     plt.show()
 
