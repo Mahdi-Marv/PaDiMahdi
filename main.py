@@ -117,7 +117,6 @@ def default():
         train_dataloader = DataLoader(train_dataset, batch_size=32, pin_memory=True)
 
         train_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])
-        test_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])  #
 
         # extract train set features
         train_feature_filepath = os.path.join(args.save_path, 'temp_%s' % args.arch, 'train_%s.pkl' % class_name)
@@ -168,6 +167,7 @@ def default():
                 test_dataloader = DataLoader(test_dataset, batch_size=32, pin_memory=True)
 
             # plot_random_test_sets(test_dataloader, factor)
+            test_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])  #
 
             gt_list = []
             gt_mask_list = []  #
