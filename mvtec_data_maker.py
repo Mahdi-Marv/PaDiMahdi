@@ -20,6 +20,8 @@ def center_paste(large_img, small_img):
     large_width, large_height = large_img.size
     small_width, small_height = small_img.size
 
+    print(large_img.size, small_img.size)
+
     # Calculate the top-left position
     left = (large_width - small_width) // 2
     top = (large_height - small_height) // 2
@@ -29,14 +31,6 @@ def center_paste(large_img, small_img):
 
     # Paste the small image onto the large one at the calculated position
     result_img.paste(small_img, (left, top))
-
-    fig, axs = plt.subplots(1, 3, figsize=(15, 5))  # figsize can be adjusted as needed
-
-    # Display each image in its respective subplot
-    axs[0].imshow(large_img)
-    axs[1].imshow(small_img)
-    axs[2].imshow(result_img)
-    plt.show()
 
     return result_img
 
@@ -75,9 +69,7 @@ class MVTEC(data.Dataset):
 
         self.transform = T.Compose([T.Resize(224, Image.ANTIALIAS),
 
-                                    T.ToTensor(),
-                                    T.Normalize(mean=[0.485, 0.456, 0.406],
-                                                std=[0.229, 0.224, 0.225])])
+                                    T.ToTensor()])
 
         self.transform_mask = T.Compose([T.Resize(resize, Image.NEAREST),
                                          T.CenterCrop(224),
