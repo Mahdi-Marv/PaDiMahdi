@@ -58,6 +58,7 @@ class MVTEC(data.Dataset):
         self.target_transform = target_transform
         self.train = train
         self.resize = resize
+        self.category = category
         if use_imagenet and resize != None:
             self.resize = int(resize * shrink_factor)
         self.interpolation = interpolation
@@ -65,42 +66,16 @@ class MVTEC(data.Dataset):
 
         self.transform = T.Compose([T.Resize(224, Image.ANTIALIAS),
 
-                                      T.ToTensor(),
-                                      T.Normalize(mean=[0.485, 0.456, 0.406],
-                                                  std=[0.229, 0.224, 0.225])])
+                                    T.ToTensor(),
+                                    T.Normalize(mean=[0.485, 0.456, 0.406],
+                                                std=[0.229, 0.224, 0.225])])
 
         # load images for training
         if self.train:
             pass
         else:
             # load images for testing
-            self.test_data = []
-            self.test_labels = []
-
-            cwd = os.getcwd()
-            testFolder = self.root + '/' + category + '/test/'
-            os.chdir(testFolder)
-            subfolders = [sf.name for sf in os.scandir() if sf.is_dir()]
-            #             print(subfolders)
-            cwsd = os.getcwd()
-
-            # for every subfolder in test folder
-            for subfolder in subfolders:
-                label = 0
-                if subfolder == 'good':
-                    label = 1
-                testSubfolder = testFolder + subfolder + '/'
-                #                 print(testSubfolder)
-                os.chdir(testSubfolder)
-                filenames = [f.name for f in os.scandir()]
-                for file in filenames:
-                    img = mpimg.imread(file)
-                    img = img * 255
-                    img = img.astype(np.uint8)
-                    self.test_data.append(img)
-                    self.test_labels.append(label)
-                os.chdir(cwsd)
-            os.chdir(cwd)
+            self.test_data, self.test_labels, self.mask = self.load_dataset_folder()
 
     def __getitem__(self, index):
         """
@@ -112,10 +87,7 @@ class MVTEC(data.Dataset):
 
         imagenet30_testset = IMAGENET30_TEST_DATASET()
 
-        if self.train:
-            img, target = self.train_data[index], self.train_labels[index]
-        else:
-            img, target = self.test_data[index], self.test_labels[index]
+        img, target, mask = self.test_data[index], self.test_labels[index], self.mask[index]
 
         # doing this so that it is consistent with all other datasets
         # to return a PIL Image
@@ -155,3 +127,37 @@ class MVTEC(data.Dataset):
             return len(self.train_data)
         else:
             return len(self.test_data)
+
+    def load_dataset_folder(self):
+        x, y, mask = [], [], []
+
+        img_dir = os.path.join(self.root, self.category, 'test')
+        gt_dir = os.path.join(self.root, self.category, 'ground_truth')
+
+        img_types = sorted(os.listdir(img_dir))
+        for img_type in img_types:
+
+            # load images
+            img_type_dir = os.path.join(img_dir, img_type)
+            if not os.path.isdir(img_type_dir):
+                continue
+            img_fpath_list = sorted([os.path.join(img_type_dir, f)
+                                     for f in os.listdir(img_type_dir)
+                                     if f.endswith('.png')])
+            x.extend(img_fpath_list)
+
+            # load gt labels
+            if img_type == 'good':
+                y.extend([0] * len(img_fpath_list))
+                mask.extend([None] * len(img_fpath_list))
+            else:
+                y.extend([1] * len(img_fpath_list))
+                gt_type_dir = os.path.join(gt_dir, img_type)
+                img_fname_list = [os.path.splitext(os.path.basename(f))[0] for f in img_fpath_list]
+                gt_fpath_list = [os.path.join(gt_type_dir, img_fname + '_mask.png')
+                                 for img_fname in img_fname_list]
+                mask.extend(gt_fpath_list)
+
+        assert len(x) == len(y), 'number of x and y should be same'
+
+        return list(x), list(y), list(mask)
