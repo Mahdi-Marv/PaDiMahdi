@@ -104,7 +104,14 @@ class MVTEC(data.Dataset):
 
         # doing this so that it is consistent with all other datasets
         # to return a PIL Image
-        img = Image.fromarray(img)
+        img_array = img.detach().cpu().numpy()
+
+        # Convert the NumPy array to a PIL Image
+        # Note: PyTorch tensors are in C x H x W format and need to be converted to H x W x C format for PIL
+        # Also, you might need to normalize the data if it's not in the 0-255 range
+        img_array = np.transpose(img_array,
+                                 (1, 2, 0))  # This is for a 3-channel image; adjust if your image is grayscale
+        img = Image.fromarray(img_array.astype(np.uint8))
 
         if self.select_random_image_from_imagenet:
             imagenet30_img = imagenet30_testset[int(random.random() * len(imagenet30_testset))][0].resize(
