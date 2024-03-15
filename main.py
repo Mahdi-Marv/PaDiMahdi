@@ -70,6 +70,8 @@ def plot_random_test_sets(dataloader, shrink_factor=0.8, num_batches=5):
 
 
 def main():
+    device = torch.device('cuda' if use_cuda else 'cpu')
+
     default()
 
 
@@ -110,11 +112,11 @@ def default():
     model.layer3[-1].register_forward_hook(hook)
 
     os.makedirs(os.path.join(args.save_path, 'temp_%s' % args.arch), exist_ok=True)
-    fig, ax = plt.subplots(1, 2, figsize=(20, 10))
-    fig_img_rocauc = ax[0]
-    fig_pixel_rocauc = ax[1]
+    # fig, ax = plt.subplots(1, 2, figsize=(20, 10))
+    # fig_img_rocauc = ax[0]
+    # fig_pixel_rocauc = ax[1]
 
-    shrink_factors = [0.8, 0.98, 1, 0.95, 0.9, 0.85]
+    shrink_factors = [0.8,1]
 
     factor_stats = {}
 
@@ -176,7 +178,7 @@ def default():
             test_dataset = MVTEC(root=args.data_path, shrink_factor=factor, category=class_name)
             test_dataloader = DataLoader(test_dataset, batch_size=32, pin_memory=True)
 
-            plot_random_test_sets(test_dataloader, factor)
+            # plot_random_test_sets(test_dataloader, factor)
             test_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])  #
 
             gt_list = []
@@ -288,7 +290,7 @@ def default():
         print('Average pixel ROCUAC: %.3f' % avg_pixel_roc_auc)
         print()
 
-    fig.tight_layout()
+    # fig.tight_layout()
     # fig.savefig(os.path.join(args.save_path, 'roc_curve.png'), dpi=100)
 
 

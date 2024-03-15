@@ -53,7 +53,7 @@ class MVTEC(data.Dataset):
 
     def __init__(self, root, train=False,
                  transform=None, target_transform=None,
-                 category='carpet', resize=224, interpolation=2, use_imagenet=True,
+                 category='carpet', resize=256, interpolation=2, use_imagenet=True,
                  select_random_image_from_imagenet=True, shrink_factor=0.9):
 
         self.root = os.path.expanduser(root)
@@ -63,13 +63,15 @@ class MVTEC(data.Dataset):
         self.resize = resize
         self.category = category
         if use_imagenet:
-            self.resize = int(resize * shrink_factor)
+            self.resize = int(224 * shrink_factor)
         self.interpolation = interpolation
         self.select_random_image_from_imagenet = select_random_image_from_imagenet
 
-        self.transform = T.Compose([T.Resize(224, Image.ANTIALIAS),
-
-                                    T.ToTensor()])
+        self.transform = T.Compose([T.Resize(resize, Image.ANTIALIAS),
+                                      T.CenterCrop(224),
+                                      T.ToTensor(),
+                                      T.Normalize(mean=[0.485, 0.456, 0.406],
+                                                  std=[0.229, 0.224, 0.225])])
 
         self.transform_mask = T.Compose([T.Resize(resize, Image.NEAREST),
                                          T.CenterCrop(224),
@@ -95,6 +97,7 @@ class MVTEC(data.Dataset):
         img, target, mask = self.test_data[index], self.test_labels[index], self.mask[index]
 
         img = Image.open(img).convert('RGB')
+        img = self.transform(img)
 
         if target == 0:
             mask = torch.zeros([1, 224, 224])
