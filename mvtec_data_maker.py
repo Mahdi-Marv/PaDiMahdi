@@ -97,7 +97,7 @@ class MVTEC(data.Dataset):
         img, target, mask = self.test_data[index], self.test_labels[index], self.mask[index]
 
         img = Image.open(img).convert('RGB')
-        img = self.transform(img)
+        # img = self.transform(img)
 
         if target == 0:
             mask = torch.zeros([1, 224, 224])
