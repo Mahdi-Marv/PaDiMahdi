@@ -101,7 +101,7 @@ def default():
     fig_img_rocauc = ax[0]
     fig_pixel_rocauc = ax[1]
 
-    shrink_factors = [1, 0.8, 0.98, 0.95, 0.9, 0.85, 1]
+    shrink_factors = [1, 0.8, 0.98, 0.95, 0.9, 0.85]
 
     factor_stats = {}
 

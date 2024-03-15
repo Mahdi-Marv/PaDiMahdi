@@ -7,6 +7,8 @@ import torch.utils.data as data
 import matplotlib.image as mpimg
 from torchvision import transforms
 import random
+from torchvision import transforms as T
+
 
 from PIL import Image
 
@@ -49,7 +51,7 @@ class MVTEC(data.Dataset):
 
     def __init__(self, root, train=False,
                  transform=None, target_transform=None,
-                 category='carpet', resize=None, interpolation=2, use_imagenet=True,
+                 category='carpet', resize=256, interpolation=2, use_imagenet=True,
                  select_random_image_from_imagenet=True, shrink_factor=0.9):
 
         self.root = os.path.expanduser(root)
@@ -95,41 +97,47 @@ class MVTEC(data.Dataset):
                 os.chdir(cwsd)
             os.chdir(cwd)
 
-            self.test_data = np.array(self.test_data)
+        def __getitem__(self, index):
+            """
+            Args:
+                index (int): Index
+            Returns:
+                tuple: (image, target) where target is index of the target class.
+            """
 
-    def __getitem__(self, index):
+            imagenet30_testset = IMAGENET30_TEST_DATASET()
 
-        if self.train:
-            pass
-        else:
-            img, target = self.test_data[index], self.test_labels[index]
+            if self.train:
+                img, target = self.train_data[index], self.train_labels[index]
+            else:
+                img, target = self.test_data[index], self.test_labels[index]
 
-        imagenet30_testset = IMAGENET30_TEST_DATASET()
-        # doing this so that it is consistent with all other datasets
-        # to return a PIL Image
-        img = Image.fromarray(img)
+            # doing this so that it is consistent with all other datasets
+            # to return a PIL Image
+            img = Image.fromarray(img)
 
-        if self.select_random_image_from_imagenet:
-            imagenet30_img = imagenet30_testset[int(random.random() * len(imagenet30_testset))][0].resize((224, 224))
-        else:
-            imagenet30_img = imagenet30_testset[100][0].resize((224, 224))
+            if self.select_random_image_from_imagenet:
+                imagenet30_img = imagenet30_testset[int(random.random() * len(imagenet30_testset))][0].resize(
+                    (224, 224))
+            else:
+                imagenet30_img = imagenet30_testset[100][0].resize((224, 224))
 
-        # if resizing image
-        # if self.resize is not None:
-        #     resizeTransf = transforms.Resize(self.resize, self.interpolation)
-        #     img = resizeTransf(img)
+            # if resizing image
+            if self.resize is not None:
+                resizeTransf = transforms.Resize(self.resize, Image.ANTIALIAS)
+                img = resizeTransf(img)
 
-        #         print(f"imagenet30_img.size: {imagenet30_img.size}")
-        #         print(f"img.size: {img.size}")
-        img = center_paste(imagenet30_img, img)
+            #         print(f"imagenet30_img.size: {imagenet30_img.size}")
+            #         print(f"img.size: {img.size}")
+            img = center_paste(imagenet30_img, img)
 
-        # if self.transform is not None:
-        #     img = self.transform(img)
-        #
-        # if self.target_transform is not None:
-        #     target = self.target_transform(target)
+            if self.transform is not None:
+                img = self.transform(img)
 
-        return img, target
+            if self.target_transform is not None:
+                target = self.target_transform(target)
+
+            return img, target
 
     def __len__(self):
         """
