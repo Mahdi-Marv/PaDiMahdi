@@ -97,7 +97,7 @@ class MVTEC(data.Dataset):
         img = self.transform(img)
 
         if target == 0:
-            mask = torch.zeros([1, self.cropsize, self.cropsize])
+            mask = torch.zeros([1, 224, 224])
         else:
             mask = Image.open(mask)
             mask = self.transform_mask(mask)
