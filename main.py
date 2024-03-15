@@ -167,7 +167,7 @@ def default():
                 test_dataset = mvtec.MVTecDataset(args.data_path, class_name=class_name, is_train=False)
                 test_dataloader = DataLoader(test_dataset, batch_size=32, pin_memory=True)
 
-            plot_random_test_sets(test_dataloader, factor)
+            # plot_random_test_sets(test_dataloader, factor)
 
             gt_list = []
             gt_mask_list = []  #
