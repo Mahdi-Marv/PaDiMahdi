@@ -57,10 +57,10 @@ def main():
         model = wide_resnet50_2(pretrained=True, progress=True)
         t_d = 1792
         d = 550
-
-    model = resnet18(pretrained=True, progress=True)
-    t_d = 448
-    d = 100
+    #
+    # model = resnet18(pretrained=True, progress=True)
+    # t_d = 448
+    # d = 100
 
     model.to(device)
     model.eval()
@@ -220,6 +220,18 @@ def main():
         save_dir = args.save_path + '/' + f'pictures_{args.arch}'
         os.makedirs(save_dir, exist_ok=True)
         plot_fig(test_imgs, scores, gt_mask_list, threshold, save_dir, class_name)
+
+        # Path to the feature file you want to delete
+        train_feature_filepath = os.path.join(args.save_path, 'temp_%s' % args.arch, 'train_%s.pkl' % class_name)
+
+        # Check if the file exists
+        if os.path.exists(train_feature_filepath):
+            # Delete the file
+            os.remove(train_feature_filepath)
+            print(f"Deleted file: {train_feature_filepath}")
+        else:
+            # The file doesn't exist
+            print(f"No file found to delete at: {train_feature_filepath}")
 
     print('Average ROCAUC: %.3f' % np.mean(total_roc_auc))
     fig_img_rocauc.title.set_text('Average image ROCAUC: %.3f' % np.mean(total_roc_auc))
