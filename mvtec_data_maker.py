@@ -139,6 +139,8 @@ class MVTEC(data.Dataset):
 
             print(img.type(), target)
 
+
+
             if self.transform is not None:
                 img = self.transform(img)
 
