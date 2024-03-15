@@ -9,7 +9,6 @@ from torchvision import transforms
 import random
 from torchvision import transforms as T
 
-
 from PIL import Image
 
 from imagenet_30_dataset import IMAGENET30_TEST_DATASET
@@ -104,50 +103,46 @@ class MVTEC(data.Dataset):
             os.chdir(cwd)
 
     def __getitem__(self, index):
-            """
+        """
             Args:
                 index (int): Index
             Returns:
                 tuple: (image, target) where target is index of the target class.
             """
 
-            imagenet30_testset = IMAGENET30_TEST_DATASET()
+        imagenet30_testset = IMAGENET30_TEST_DATASET()
 
-            if self.train:
-                img, target = self.train_data[index], self.train_labels[index]
-            else:
-                img, target = self.test_data[index], self.test_labels[index]
+        if self.train:
+            img, target = self.train_data[index], self.train_labels[index]
+        else:
+            img, target = self.test_data[index], self.test_labels[index]
 
-            # doing this so that it is consistent with all other datasets
-            # to return a PIL Image
-            img = Image.fromarray(img)
+        # doing this so that it is consistent with all other datasets
+        # to return a PIL Image
+        img = Image.fromarray(img)
 
-            if self.select_random_image_from_imagenet:
-                imagenet30_img = imagenet30_testset[int(random.random() * len(imagenet30_testset))][0].resize(
-                    (224, 224))
-            else:
-                imagenet30_img = imagenet30_testset[100][0].resize((224, 224))
+        if self.select_random_image_from_imagenet:
+            imagenet30_img = imagenet30_testset[int(random.random() * len(imagenet30_testset))][0].resize(
+                (224, 224))
+        else:
+            imagenet30_img = imagenet30_testset[100][0].resize((224, 224))
 
-            # if resizing image
-            if self.resize is not None:
-                resizeTransf = transforms.Resize(self.resize, Image.ANTIALIAS)
-                img = resizeTransf(img)
+        # if resizing image
+        if self.resize is not None:
+            resizeTransf = transforms.Resize(self.resize, Image.ANTIALIAS)
+            img = resizeTransf(img)
 
-            #         print(f"imagenet30_img.size: {imagenet30_img.size}")
-            #         print(f"img.size: {img.size}")
-            img = center_paste(imagenet30_img, img)
+        #         print(f"imagenet30_img.size: {imagenet30_img.size}")
+        #         print(f"img.size: {img.size}")
+        img = center_paste(imagenet30_img, img)
 
-            print(img.type(), target)
+        if self.transform is not None:
+            img = self.transform(img)
 
+        if self.target_transform is not None:
+            target = self.target_transform(target)
 
-
-            if self.transform is not None:
-                img = self.transform(img)
-
-            if self.target_transform is not None:
-                target = self.target_transform(target)
-
-            return img, target
+        return img, target
 
     def __len__(self):
         """
