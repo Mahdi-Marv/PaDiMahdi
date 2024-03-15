@@ -52,14 +52,12 @@ class MVTEC(data.Dataset):
                  category='carpet', resize=None, interpolation=2, use_imagenet=True,
                  select_random_image_from_imagenet=True, shrink_factor=0.9):
 
-
-
         self.root = os.path.expanduser(root)
         self.transform = transform
         self.target_transform = target_transform
         self.train = train
         self.resize = resize
-        if use_imagenet:
+        if use_imagenet and resize != None:
             self.resize = int(resize * shrink_factor)
         self.interpolation = interpolation
         self.select_random_image_from_imagenet = select_random_image_from_imagenet
