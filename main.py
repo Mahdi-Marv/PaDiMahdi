@@ -243,7 +243,7 @@ def default():
 
             print('shrink factor:', factor)
             print('image ROCAUC: %.3f' % (img_roc_auc))
-            fig_img_rocauc.plot(fpr, tpr, label='%s img_ROCAUC: %.3f' % (class_name, img_roc_auc))
+            # fig_img_rocauc.plot(fpr, tpr, label='%s img_ROCAUC: %.3f' % (class_name, img_roc_auc))
 
             # get optimal threshold
             gt_mask = np.asarray(gt_mask_list)
@@ -261,14 +261,14 @@ def default():
 
             print('pixel ROCAUC: %.3f' % (per_pixel_rocauc))
 
-            fig_pixel_rocauc.plot(fpr, tpr, label='%s ROCAUC: %.3f' % (class_name, per_pixel_rocauc))
-            save_dir = args.save_path + '/' + f'pictures_{args.arch}'
-            os.makedirs(save_dir, exist_ok=True)
-            plot_fig(test_imgs, scores, gt_mask_list, threshold, save_dir, class_name)
+            # fig_pixel_rocauc.plot(fpr, tpr, label='%s ROCAUC: %.3f' % (class_name, per_pixel_rocauc))
+            # save_dir = args.save_path + '/' + f'pictures_{args.arch}'
+            # os.makedirs(save_dir, exist_ok=True)
+            # plot_fig(test_imgs, scores, gt_mask_list, threshold, save_dir, class_name)
 
             # Path to the feature file you want to delete
-            train_feature_filepath = os.path.join(args.save_path, 'temp_%s' % args.arch, 'train_%s.pkl' % class_name)
 
+        train_feature_filepath = os.path.join(args.save_path, 'temp_%s' % args.arch, 'train_%s.pkl' % class_name)
         # Check if the file exists
         if os.path.exists(train_feature_filepath):
             # Delete the file
@@ -289,7 +289,7 @@ def default():
         print()
 
     fig.tight_layout()
-    fig.savefig(os.path.join(args.save_path, 'roc_curve.png'), dpi=100)
+    # fig.savefig(os.path.join(args.save_path, 'roc_curve.png'), dpi=100)
 
 
 def plot_fig(test_img, scores, gts, threshold, save_dir, class_name):
