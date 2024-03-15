@@ -172,12 +172,9 @@ def default():
                 train_outputs = pickle.load(f)
 
         for factor in shrink_factors:
-            if factor != 1:
-                test_dataset = MVTEC(root=args.data_path, shrink_factor=factor, category=class_name)
-                test_dataloader = DataLoader(test_dataset, batch_size=32, pin_memory=True)
-            else:
-                test_dataset = mvtec.MVTecDataset(args.data_path, class_name=class_name, is_train=False)
-                test_dataloader = DataLoader(test_dataset, batch_size=32, pin_memory=True)
+
+            test_dataset = MVTEC(root=args.data_path, shrink_factor=factor, category=class_name)
+            test_dataloader = DataLoader(test_dataset, batch_size=32, pin_memory=True)
 
             plot_random_test_sets(test_dataloader, factor)
             test_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])  #

@@ -50,7 +50,7 @@ class MVTEC(data.Dataset):
 
     def __init__(self, root, train=False,
                  transform=None, target_transform=None,
-                 category='carpet', resize=256, interpolation=2, use_imagenet=True,
+                 category='carpet', resize=224, interpolation=2, use_imagenet=True,
                  select_random_image_from_imagenet=True, shrink_factor=0.9):
 
         self.root = os.path.expanduser(root)
@@ -59,7 +59,7 @@ class MVTEC(data.Dataset):
         self.train = train
         self.resize = resize
         self.category = category
-        if use_imagenet and resize != None:
+        if use_imagenet:
             self.resize = int(resize * shrink_factor)
         self.interpolation = interpolation
         self.select_random_image_from_imagenet = select_random_image_from_imagenet
@@ -94,24 +94,12 @@ class MVTEC(data.Dataset):
         img, target, mask = self.test_data[index], self.test_labels[index], self.mask[index]
 
         img = Image.open(img).convert('RGB')
-        img = self.transform(img)
 
         if target == 0:
             mask = torch.zeros([1, 224, 224])
         else:
             mask = Image.open(mask)
             mask = self.transform_mask(mask)
-
-        # doing this so that it is consistent with all other datasets
-        # to return a PIL Image
-        img_array = img.detach().cpu().numpy()
-
-        # Convert the NumPy array to a PIL Image
-        # Note: PyTorch tensors are in C x H x W format and need to be converted to H x W x C format for PIL
-        # Also, you might need to normalize the data if it's not in the 0-255 range
-        img_array = np.transpose(img_array,
-                                 (1, 2, 0))  # This is for a 3-channel image; adjust if your image is grayscale
-        img = Image.fromarray(img_array.astype(np.uint8))
 
         if self.select_random_image_from_imagenet:
             imagenet30_img = imagenet30_testset[int(random.random() * len(imagenet30_testset))][0].resize(
