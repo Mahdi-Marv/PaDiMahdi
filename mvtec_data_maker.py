@@ -98,12 +98,7 @@ class MVTEC(data.Dataset):
             self.test_data = np.array(self.test_data)
 
     def __getitem__(self, index):
-        """
-        Args:
-            index (int): Index
-        Returns:
-            tuple: (image, target) where target is index of the target class.
-        """
+
         if self.train:
             pass
         else:
@@ -120,19 +115,19 @@ class MVTEC(data.Dataset):
             imagenet30_img = imagenet30_testset[100][0].resize((224, 224))
 
         # if resizing image
-        if self.resize is not None:
-            resizeTransf = transforms.Resize(self.resize, self.interpolation)
-            img = resizeTransf(img)
+        # if self.resize is not None:
+        #     resizeTransf = transforms.Resize(self.resize, self.interpolation)
+        #     img = resizeTransf(img)
 
         #         print(f"imagenet30_img.size: {imagenet30_img.size}")
         #         print(f"img.size: {img.size}")
         img = center_paste(imagenet30_img, img)
 
-        if self.transform is not None:
-            img = self.transform(img)
-
-        if self.target_transform is not None:
-            target = self.target_transform(target)
+        # if self.transform is not None:
+        #     img = self.transform(img)
+        #
+        # if self.target_transform is not None:
+        #     target = self.target_transform(target)
 
         return img, target
 
