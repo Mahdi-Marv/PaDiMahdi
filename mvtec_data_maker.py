@@ -8,7 +8,7 @@ import matplotlib.image as mpimg
 from torchvision import transforms
 import random
 from torchvision import transforms as T
-
+import torch
 from PIL import Image
 
 from imagenet_30_dataset import IMAGENET30_TEST_DATASET
@@ -70,6 +70,10 @@ class MVTEC(data.Dataset):
                                     T.Normalize(mean=[0.485, 0.456, 0.406],
                                                 std=[0.229, 0.224, 0.225])])
 
+        self.transform_mask = T.Compose([T.Resize(resize, Image.NEAREST),
+                                         T.CenterCrop(224),
+                                         T.ToTensor()])
+
         # load images for training
         if self.train:
             pass
@@ -88,6 +92,15 @@ class MVTEC(data.Dataset):
         imagenet30_testset = IMAGENET30_TEST_DATASET()
 
         img, target, mask = self.test_data[index], self.test_labels[index], self.mask[index]
+
+        img = Image.open(img).convert('RGB')
+        img = self.transform(img)
+
+        if target == 0:
+            mask = torch.zeros([1, self.cropsize, self.cropsize])
+        else:
+            mask = Image.open(mask)
+            mask = self.transform_mask(mask)
 
         # doing this so that it is consistent with all other datasets
         # to return a PIL Image
@@ -114,7 +127,7 @@ class MVTEC(data.Dataset):
         if self.target_transform is not None:
             target = self.target_transform(target)
 
-        return img, target
+        return img, target, mask
 
     def __len__(self):
         """
