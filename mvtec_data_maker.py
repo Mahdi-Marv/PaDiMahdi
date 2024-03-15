@@ -97,7 +97,7 @@ class MVTEC(data.Dataset):
                 os.chdir(cwsd)
             os.chdir(cwd)
 
-        def __getitem__(self, index):
+    def __getitem__(self, index):
             """
             Args:
                 index (int): Index
