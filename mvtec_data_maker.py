@@ -10,6 +10,7 @@ import random
 from torchvision import transforms as T
 import torch
 from PIL import Image
+import matplotlib.pyplot as plt
 
 from imagenet_30_dataset import IMAGENET30_TEST_DATASET
 
@@ -28,6 +29,14 @@ def center_paste(large_img, small_img):
 
     # Paste the small image onto the large one at the calculated position
     result_img.paste(small_img, (left, top))
+
+    fig, axs = plt.subplots(1, 3, figsize=(15, 5))  # figsize can be adjusted as needed
+
+    # Display each image in its respective subplot
+    axs[0].imshow(large_img)
+    axs[1].imshow(small_img)
+    axs[2].imshow(result_img)
+    plt.show()
 
     return result_img
 
