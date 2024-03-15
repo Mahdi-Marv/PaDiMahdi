@@ -63,7 +63,7 @@ class MVTEC(data.Dataset):
         self.interpolation = interpolation
         self.select_random_image_from_imagenet = select_random_image_from_imagenet
 
-        self.transform_x = T.Compose([T.Resize(224, Image.ANTIALIAS),
+        self.transform = T.Compose([T.Resize(224, Image.ANTIALIAS),
 
                                       T.ToTensor(),
                                       T.Normalize(mean=[0.485, 0.456, 0.406],
