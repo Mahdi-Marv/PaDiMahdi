@@ -117,8 +117,8 @@ class MVTEC(data.Dataset):
         #         print(f"img.size: {img.size}")
         img = center_paste(imagenet30_img, img)
 
-        # if self.transform is not None:
-        #     img = self.transform(img)
+        if self.transform is not None:
+            img = self.transform(img)
 
         if self.target_transform is not None:
             target = self.target_transform(target)
