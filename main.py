@@ -23,6 +23,7 @@ from torch.utils.data import DataLoader
 from torchvision.models import wide_resnet50_2, resnet18
 import datasets.mvtec as mvtec
 
+from mvtec_data_maker import MVTEC
 
 # device setup
 use_cuda = torch.cuda.is_available()
@@ -37,16 +38,241 @@ def parse_args():
     return parser.parse_args()
 
 
-def main():
+def plot_random_test_sets(dataloader, shrink_factor=0.8, num_batches=5):
+    fig, ax = plt.subplots(1, num_batches, figsize=(15, 3))
+    fig.suptitle(f'Shrink Factor = {shrink_factor}', fontsize=16)
 
+    for batch_idx, (imgs, _) in enumerate(dataloader):
+        if batch_idx >= num_batches:
+            break
+        # Select the first image of each batch for simplicity
+        img = imgs[0].numpy()  # Assuming imgs are tensors, adjust if they are PIL Images
+        img = np.transpose(img, (1, 2, 0))  # Adjust dimensions for matplotlib (if necessary)
+
+        # Plotting
+        ax[batch_idx].imshow(img)
+        ax[batch_idx].axis('off')  # Turn off axis
+
+    plt.show()
+
+def model_shrink(factor):
+    print("shrink factor:", factor)
 
     args = parse_args()
-    print(use_cuda)
-    print(device.type)
-    print("CUDA Available:", torch.cuda.is_available())
-    print("CUDA Devices:", torch.cuda.device_count())
-    print("Current CUDA Device:", torch.cuda.current_device())
-    print("CUDA Device Name:", torch.cuda.get_device_name(torch.cuda.current_device()))
+
+    # load model
+    if args.arch == 'resnet18':
+        model = resnet18(pretrained=True, progress=True)
+        t_d = 448
+        d = 100
+    elif args.arch == 'wide_resnet50_2':
+        model = wide_resnet50_2(pretrained=True, progress=True)
+        t_d = 1792
+        d = 550
+
+    # model = resnet18(pretrained=True, progress=True)
+    # t_d = 448
+    # d = 100
+
+    model.to(device)
+    model.eval()
+    random.seed(1024)
+    torch.manual_seed(1024)
+    if use_cuda:
+        torch.cuda.manual_seed_all(1024)
+
+    idx = torch.tensor(sample(range(0, t_d), d))
+
+    # set model's intermediate outputs
+    outputs = []
+
+    def hook(module, input, output):
+        outputs.append(output)
+
+    model.layer1[-1].register_forward_hook(hook)
+    model.layer2[-1].register_forward_hook(hook)
+    model.layer3[-1].register_forward_hook(hook)
+
+    os.makedirs(os.path.join(args.save_path, 'temp_%s' % args.arch), exist_ok=True)
+    fig, ax = plt.subplots(1, 2, figsize=(20, 10))
+    fig_img_rocauc = ax[0]
+    fig_pixel_rocauc = ax[1]
+
+    total_roc_auc = []
+    total_pixel_roc_auc = []
+
+    for class_name in mvtec.CLASS_NAMES:
+
+        train_dataset = mvtec.MVTecDataset(args.data_path, class_name=class_name, is_train=True)
+        train_dataloader = DataLoader(train_dataset, batch_size=32, pin_memory=True)
+
+        test_dataset = MVTEC(root=args.data_path, shrink_factor=factor, category=class_name)
+        test_dataloader = DataLoader(test_dataset, batch_size=32, pin_memory=True)  #
+
+        plot_random_test_sets(test_dataloader, shrink_factor=factor)
+
+        train_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])
+        test_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])  #
+
+        # extract train set features
+        train_feature_filepath = os.path.join(args.save_path, 'temp_%s' % args.arch, 'train_%s.pkl' % class_name)
+        if not os.path.exists(train_feature_filepath):
+            for (x, _, _) in tqdm(train_dataloader, '| feature extraction | train | %s |' % class_name):
+                # model prediction
+                with torch.no_grad():
+                    _ = model(x.to(device))
+                # get intermediate layer outputs
+                for k, v in zip(train_outputs.keys(), outputs):
+                    train_outputs[k].append(v.cpu().detach())
+                # initialize hook outputs
+                outputs = []
+            for k, v in train_outputs.items():
+                train_outputs[k] = torch.cat(v, 0)
+
+            # Embedding concat
+            embedding_vectors = train_outputs['layer1']
+            for layer_name in ['layer2', 'layer3']:
+                embedding_vectors = embedding_concat(embedding_vectors, train_outputs[layer_name])
+
+            # randomly select d dimension
+            embedding_vectors = torch.index_select(embedding_vectors, 1, idx)
+            # calculate multivariate Gaussian distribution
+            B, C, H, W = embedding_vectors.size()
+            embedding_vectors = embedding_vectors.view(B, C, H * W)
+            mean = torch.mean(embedding_vectors, dim=0).numpy()
+            cov = torch.zeros(C, C, H * W).numpy()
+            I = np.identity(C)
+            for i in range(H * W):
+                # cov[:, :, i] = LedoitWolf().fit(embedding_vectors[:, :, i].numpy()).covariance_
+                cov[:, :, i] = np.cov(embedding_vectors[:, :, i].numpy(), rowvar=False) + 0.01 * I
+            # save learned distribution
+            train_outputs = [mean, cov]
+            with open(train_feature_filepath, 'wb') as f:
+                pickle.dump(train_outputs, f)
+        else:
+            print('load train set feature from: %s' % train_feature_filepath)
+            with open(train_feature_filepath, 'rb') as f:
+                train_outputs = pickle.load(f)
+
+        gt_list = []
+        gt_mask_list = []  #
+        test_imgs = []
+
+        # extract test set features
+        for (x, y, mask) in tqdm(test_dataloader, '| feature extraction | test | %s |' % class_name):
+            test_imgs.extend(x.cpu().detach().numpy())
+            gt_list.extend(y.cpu().detach().numpy())
+            gt_mask_list.extend(mask.cpu().detach().numpy())
+            # model prediction
+            with torch.no_grad():
+                _ = model(x.to(device))
+            # get intermediate layer outputs
+            for k, v in zip(test_outputs.keys(), outputs):
+                test_outputs[k].append(v.cpu().detach())
+            # initialize hook outputs
+            outputs = []
+        for k, v in test_outputs.items():
+            test_outputs[k] = torch.cat(v, 0)
+
+        # Embedding concat
+        embedding_vectors = test_outputs['layer1']
+        for layer_name in ['layer2', 'layer3']:
+            embedding_vectors = embedding_concat(embedding_vectors, test_outputs[layer_name])
+
+        # randomly select d dimension
+        embedding_vectors = torch.index_select(embedding_vectors, 1, idx)
+
+        # calculate distance matrix
+        B, C, H, W = embedding_vectors.size()
+        embedding_vectors = embedding_vectors.view(B, C, H * W).numpy()
+        dist_list = []
+        for i in range(H * W):
+            mean = train_outputs[0][:, i]
+            conv_inv = np.linalg.inv(train_outputs[1][:, :, i])
+            dist = [mahalanobis(sample[:, i], mean, conv_inv) for sample in embedding_vectors]
+            dist_list.append(dist)
+
+        dist_list = np.array(dist_list).transpose(1, 0).reshape(B, H, W)
+
+        # upsample
+        dist_list = torch.tensor(dist_list)
+        score_map = F.interpolate(dist_list.unsqueeze(1), size=x.size(2), mode='bilinear',
+                                  align_corners=False).squeeze().numpy()
+
+        # apply gaussian smoothing on the score map
+        for i in range(score_map.shape[0]):
+            score_map[i] = gaussian_filter(score_map[i], sigma=4)
+
+        # Normalization
+        max_score = score_map.max()
+        min_score = score_map.min()
+        scores = (score_map - min_score) / (max_score - min_score)
+
+        # calculate image-level ROC AUC score
+        img_scores = scores.reshape(scores.shape[0], -1).max(axis=1)
+        gt_list = np.asarray(gt_list)
+        fpr, tpr, _ = roc_curve(gt_list, img_scores)
+        img_roc_auc = roc_auc_score(gt_list, img_scores)
+        total_roc_auc.append(img_roc_auc)
+        print('image ROCAUC: %.3f' % (img_roc_auc))
+        fig_img_rocauc.plot(fpr, tpr, label='%s img_ROCAUC: %.3f' % (class_name, img_roc_auc))
+
+        # get optimal threshold
+        gt_mask = np.asarray(gt_mask_list)
+        precision, recall, thresholds = precision_recall_curve(gt_mask.flatten(), scores.flatten())
+        a = 2 * precision * recall
+        b = precision + recall
+        f1 = np.divide(a, b, out=np.zeros_like(a), where=b != 0)
+        threshold = thresholds[np.argmax(f1)]
+
+        # calculate per-pixel level ROCAUC
+        fpr, tpr, _ = roc_curve(gt_mask.flatten(), scores.flatten())
+        per_pixel_rocauc = roc_auc_score(gt_mask.flatten(), scores.flatten())
+        total_pixel_roc_auc.append(per_pixel_rocauc)
+        print('pixel ROCAUC: %.3f' % (per_pixel_rocauc))
+
+        fig_pixel_rocauc.plot(fpr, tpr, label='%s ROCAUC: %.3f' % (class_name, per_pixel_rocauc))
+        save_dir = args.save_path + '/' + f'pictures_{args.arch}'
+        os.makedirs(save_dir, exist_ok=True)
+        plot_fig(test_imgs, scores, gt_mask_list, threshold, save_dir, class_name)
+
+        # Path to the feature file you want to delete
+        train_feature_filepath = os.path.join(args.save_path, 'temp_%s' % args.arch, 'train_%s.pkl' % class_name)
+
+        # Check if the file exists
+        if os.path.exists(train_feature_filepath):
+            # Delete the file
+            os.remove(train_feature_filepath)
+            print(f"Deleted file: {train_feature_filepath}")
+        else:
+            # The file doesn't exist
+            print(f"No file found to delete at: {train_feature_filepath}")
+
+    print("shrink factor:", factor)
+    print("###############################\n")
+
+    print('Average ROCAUC: %.3f' % np.mean(total_roc_auc))
+    fig_img_rocauc.title.set_text('Average image ROCAUC: %.3f' % np.mean(total_roc_auc))
+    fig_img_rocauc.legend(loc="lower right")
+
+    print('Average pixel ROCUAC: %.3f' % np.mean(total_pixel_roc_auc))
+    fig_pixel_rocauc.title.set_text('Average pixel ROCAUC: %.3f' % np.mean(total_pixel_roc_auc))
+    fig_pixel_rocauc.legend(loc="lower right")
+
+    fig.tight_layout()
+    fig.savefig(os.path.join(args.save_path, 'roc_curve.png'), dpi=100)
+
+
+def main():
+    # default()
+
+    shrink_factors = [0.8, 0.98, 0.95, 0.9, 0.85]
+    for factor in shrink_factors:
+        model_shrink(factor)
+
+
+def default():
+    args = parse_args()
 
     # load model
     if args.arch == 'resnet18':
@@ -93,11 +319,12 @@ def main():
 
         train_dataset = mvtec.MVTecDataset(args.data_path, class_name=class_name, is_train=True)
         train_dataloader = DataLoader(train_dataset, batch_size=32, pin_memory=True)
-        test_dataset = mvtec.MVTecDataset(args.data_path, class_name=class_name, is_train=False)
-        test_dataloader = DataLoader(test_dataset, batch_size=32, pin_memory=True)
+
+        test_dataset = mvtec.MVTecDataset(args.data_path, class_name=class_name, is_train=False)  #
+        test_dataloader = DataLoader(test_dataset, batch_size=32, pin_memory=True)  #
 
         train_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])
-        test_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])
+        test_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])  #
 
         # extract train set features
         train_feature_filepath = os.path.join(args.save_path, 'temp_%s' % args.arch, 'train_%s.pkl' % class_name)
@@ -140,7 +367,7 @@ def main():
                 train_outputs = pickle.load(f)
 
         gt_list = []
-        gt_mask_list = []
+        gt_mask_list = []  #
         test_imgs = []
 
         # extract test set features
@@ -158,7 +385,7 @@ def main():
             outputs = []
         for k, v in test_outputs.items():
             test_outputs[k] = torch.cat(v, 0)
-        
+
         # Embedding concat
         embedding_vectors = test_outputs['layer1']
         for layer_name in ['layer2', 'layer3']:
@@ -166,7 +393,7 @@ def main():
 
         # randomly select d dimension
         embedding_vectors = torch.index_select(embedding_vectors, 1, idx)
-        
+
         # calculate distance matrix
         B, C, H, W = embedding_vectors.size()
         embedding_vectors = embedding_vectors.view(B, C, H * W).numpy()
@@ -183,16 +410,16 @@ def main():
         dist_list = torch.tensor(dist_list)
         score_map = F.interpolate(dist_list.unsqueeze(1), size=x.size(2), mode='bilinear',
                                   align_corners=False).squeeze().numpy()
-        
+
         # apply gaussian smoothing on the score map
         for i in range(score_map.shape[0]):
             score_map[i] = gaussian_filter(score_map[i], sigma=4)
-        
+
         # Normalization
         max_score = score_map.max()
         min_score = score_map.min()
         scores = (score_map - min_score) / (max_score - min_score)
-        
+
         # calculate image-level ROC AUC score
         img_scores = scores.reshape(scores.shape[0], -1).max(axis=1)
         gt_list = np.asarray(gt_list)
@@ -201,7 +428,7 @@ def main():
         total_roc_auc.append(img_roc_auc)
         print('image ROCAUC: %.3f' % (img_roc_auc))
         fig_img_rocauc.plot(fpr, tpr, label='%s img_ROCAUC: %.3f' % (class_name, img_roc_auc))
-        
+
         # get optimal threshold
         gt_mask = np.asarray(gt_mask_list)
         precision, recall, thresholds = precision_recall_curve(gt_mask.flatten(), scores.flatten())
@@ -303,7 +530,7 @@ def denormalization(x):
     mean = np.array([0.485, 0.456, 0.406])
     std = np.array([0.229, 0.224, 0.225])
     x = (((x.transpose(1, 2, 0) * std) + mean) * 255.).astype(np.uint8)
-    
+
     return x
 
 
