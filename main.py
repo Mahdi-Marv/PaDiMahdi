@@ -59,7 +59,7 @@ def plot_images_and_save(dataset, subclass_name, shrink_factor, batch_size=32, g
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
         # Save the figure
-    fig_path = os.path.join(folder_path, 'image_grid.png')
+    fig_path = os.path.join(folder_path, f'image_grid_{shrink_factor}.png')
     plt.savefig(fig_path)
     plt.close(fig)  # Close the figure to free memory
 
