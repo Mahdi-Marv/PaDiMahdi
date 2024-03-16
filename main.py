@@ -175,6 +175,7 @@ def default():
 
             # plot_images_and_save(test_dataset, class_name, factor)
 
+
             test_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])  #
 
             gt_list = []
