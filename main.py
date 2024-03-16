@@ -38,35 +38,30 @@ def parse_args():
     return parser.parse_args()
 
 
-def plot_random_test_sets(dataloader, shrink_factor=0.8, num_batches=5):
-    fig, axs = plt.subplots(1, num_batches, figsize=(15, 3))
-    fig.suptitle(f'Shrink Factor = {shrink_factor}', fontsize=16)
+def plot_images_and_save(dataset, subclass_name, shrink_factor, batch_size=32, grid_size=(5, 4)):
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    images, labels, mask = next(iter(dataloader))
 
-    for batch_idx, data in enumerate(dataloader):
-        if batch_idx >= num_batches:
-            break
-        # Adjust unpacking here based on the actual data structure
-        imgs, _, _ = data  # This assumes the dataloader returns (imgs, labels, masks)
+    # Plotting
+    fig, axs = plt.subplots(grid_size[0], grid_size[1], figsize=(15, 10))
+    for i, ax in enumerate(axs.flat):
+        ax.imshow(images[i].permute(1, 2, 0))  # Adjust if your images don't need permute
+        ax.axis('off')
+    fig.suptitle(f'{subclass_name} with shrink factor: {shrink_factor}', fontsize=16)  # Set the title for the figure
 
-        # Convert the image tensor to numpy array for plotting
-        img = imgs[0].detach().cpu().numpy()  # Ensure it's detached and on CPU
-        img = np.transpose(img, (1, 2, 0))  # Adjust dimensions for matplotlib
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # Adjust layout to make room for the title
 
-        # Handle grayscale images (if necessary)
-        if img.shape[2] == 1:
-            img = np.squeeze(img, axis=2)
+    plt.tight_layout()
 
-        # Check if normalization is required for displaying the image correctly
-        if img.min() < 0:
-            # Normalize to [0, 1] if your images were normalized to some range e.g., [-1, 1]
-            img = (img - img.min()) / (img.max() - img.min())
-
-        # Plotting
-        ax = axs[batch_idx] if num_batches > 1 else axs
-        ax.imshow(img)
-        ax.axis('off')  # Turn off axis
-
-    plt.show()
+    # Ensure the folder exists
+    # Assuming all images in the batch share the same subclass
+    folder_path = f'/kaggle/working/plots/{subclass_name}'
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+        # Save the figure
+    fig_path = os.path.join(folder_path, 'image_grid.png')
+    plt.savefig(fig_path)
+    plt.close(fig)  # Close the figure to free memory
 
 
 def main():
@@ -178,6 +173,8 @@ def default():
             test_dataset = MVTEC(root=args.data_path, shrink_factor=factor, category=class_name)
             test_dataloader = DataLoader(test_dataset, batch_size=32, pin_memory=True)
 
+            plot_images_and_save(test_dataset, class_name, factor)
+
             # plot_random_test_sets(test_dataloader, factor)
             test_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])  #
 
@@ -240,7 +237,6 @@ def default():
             gt_list = np.asarray(gt_list)
             fpr, tpr, _ = roc_curve(gt_list, img_scores)
             img_roc_auc = roc_auc_score(gt_list, img_scores)
-            # total_roc_auc.append(img_roc_auc)
             factor_stats[factor]['total_roc_auc'].append(img_roc_auc)
 
             print('shrink factor:', factor)
@@ -258,7 +254,6 @@ def default():
             # calculate per-pixel level ROCAUC
             fpr, tpr, _ = roc_curve(gt_mask.flatten(), scores.flatten())
             per_pixel_rocauc = roc_auc_score(gt_mask.flatten(), scores.flatten())
-            # total_pixel_roc_auc.append(per_pixel_rocauc)
             factor_stats[factor]['total_pixel_roc_auc'].append(per_pixel_rocauc)
 
             print('pixel ROCAUC: %.3f' % (per_pixel_rocauc))

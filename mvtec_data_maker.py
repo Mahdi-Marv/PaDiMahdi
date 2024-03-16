@@ -67,14 +67,12 @@ class MVTEC(data.Dataset):
         self.interpolation = interpolation
         self.select_random_image_from_imagenet = select_random_image_from_imagenet
 
-        self.transform = T.Compose([T.Resize(resize, Image.ANTIALIAS),
-                                      T.CenterCrop(224),
-                                      T.ToTensor(),
-                                      T.Normalize(mean=[0.485, 0.456, 0.406],
-                                                  std=[0.229, 0.224, 0.225])])
+        self.transform = T.Compose([T.Resize(224, Image.ANTIALIAS),
+                                    T.ToTensor(),
+                                    T.Normalize(mean=[0.485, 0.456, 0.406],
+                                                std=[0.229, 0.224, 0.225])])
 
-        self.transform_mask = T.Compose([T.Resize(resize, Image.NEAREST),
-                                         T.CenterCrop(224),
+        self.transform_mask = T.Compose([T.Resize(224, Image.NEAREST),
                                          T.ToTensor()])
 
         # load images for training
