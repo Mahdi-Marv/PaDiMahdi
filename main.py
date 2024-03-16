@@ -173,9 +173,8 @@ def default():
             test_dataset = MVTEC(root=args.data_path, shrink_factor=factor, category=class_name)
             test_dataloader = DataLoader(test_dataset, batch_size=32, pin_memory=True)
 
-            plot_images_and_save(test_dataset, class_name, factor)
+            # plot_images_and_save(test_dataset, class_name, factor)
 
-            # plot_random_test_sets(test_dataloader, factor)
             test_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])  #
 
             gt_list = []
