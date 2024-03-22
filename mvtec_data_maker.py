@@ -95,7 +95,6 @@ class MVTEC(data.Dataset):
         img, target, mask = self.test_data[index], self.test_labels[index], self.mask[index]
 
         img = Image.open(img).convert('RGB')
-        # img = self.transform(img)
 
         if target == 0:
             mask = torch.zeros([1, 224, 224])
@@ -103,19 +102,14 @@ class MVTEC(data.Dataset):
             mask = Image.open(mask)
             mask = self.transform_mask(mask)
 
-        if self.select_random_image_from_imagenet:
-            imagenet30_img = imagenet30_testset[int(random.random() * len(imagenet30_testset))][0].resize(
-                (224, 224))
-        else:
-            imagenet30_img = imagenet30_testset[100][0].resize((224, 224))
+        imagenet30_img = imagenet30_testset[int(random.random() * len(imagenet30_testset))][0].resize(
+            (224, 224))
 
         # if resizing image
         if self.resize is not None:
             resizeTransf = transforms.Resize(self.resize, Image.ANTIALIAS)
             img = resizeTransf(img)
 
-        #         print(f"imagenet30_img.size: {imagenet30_img.size}")
-        #         print(f"img.size: {img.size}")
         img = center_paste(imagenet30_img, img)
 
         if self.transform is not None:
