@@ -75,7 +75,7 @@ def main():
     test_data = pd.DataFrame()
     for label in [1, 2, 3, 4]:
         class_samples = df[df['class label'] == label].sample(n=22, random_state=1)
-        test_data = test_data.append(class_samples)
+        test_data = pd.concat([test_data, class_samples])
 
     total_roc_auc = []
 
