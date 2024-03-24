@@ -19,6 +19,7 @@ class WBC_dataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = f"{self.path}/{str(self.img_labels.iloc[idx, 0]).zfill(3)}.bmp"
+        print(img_path)
         image = Image.open(img_path).convert('RGB')
         label = self.img_labels.iloc[idx, 1]
 
