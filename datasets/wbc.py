@@ -27,8 +27,8 @@ class WBC_dataset(Dataset):
         image = self.transform(image)
 
         clas = 0 if label == 1 else 1
-        if self.phase == 'test':
-            print(clas)
+        # if self.phase == 'test':
+        #     print(clas)
         return image, clas
 
     def __len__(self):
