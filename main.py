@@ -68,7 +68,7 @@ def main():
     df = pd.read_csv('wbc/segmentation_WBC-master/Class Labels of Dataset 1.csv')
 
     df = df[df['class label'] != 5]
-    train_data = df[df['class label'] == 1].sample(n=154)
+    train_data = df[df['class label'] == 1].sample(n=154, random_state=1)
 
     df = df.drop(train_data.index)
 
@@ -81,8 +81,8 @@ def main():
 
     class_name = 'one'
 
-    # train_data.to_csv('train_dataset.csv', index=False)
-    # test_data.to_csv('test_dataset.csv', index=False)
+    train_data.to_csv('train_dataset.csv', index=False)
+    test_data.to_csv('test_dataset.csv', index=False)
 
     # Use the CustomDataset class
     train_dataset = WBC_dataset(csv_path='train_dataset.csv', image_path='wbc/segmentation_WBC-master/Dataset 1')
