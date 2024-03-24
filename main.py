@@ -68,7 +68,7 @@ def main():
     df = pd.read_csv('wbc/segmentation_WBC-master/Class Labels of Dataset 1.csv')
 
     df = df[df['class label'] != 5]
-    train_data = df[df['class label'] == 1].sample(n=154, random_state=4)
+    train_data = df[df['class label'] == 1].sample(n=154, random_state=1)
 
     df = df.drop(train_data.index)
 
@@ -89,7 +89,7 @@ def main():
     test_dataset = WBC_dataset(csv_path='test_dataset.csv', image_path='wbc/segmentation_WBC-master/Dataset 1', phase='test')
 
     # Create DataLoaders
-    train_dataloader = DataLoader(train_dataset, batch_size=4, shuffle=True)
+    # train_dataloader = DataLoader(train_dataset, batch_size=4, shuffle=True)
     test_dataloader = DataLoader(test_dataset, batch_size=4, shuffle=True)
 
     train_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])
