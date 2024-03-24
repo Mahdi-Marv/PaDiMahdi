@@ -98,6 +98,7 @@ def main():
     # extract train set features
     train_feature_filepath = os.path.join(args.save_path, 'temp', 'train_%s.pkl' % class_name)
     if not os.path.exists(train_feature_filepath):
+        print('feature path does not exist')
         for (x, _) in tqdm(train_dataloader, '| feature extraction | train | %s |' % class_name):
             # model prediction
             with torch.no_grad():
