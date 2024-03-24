@@ -12,6 +12,7 @@ class WBC_dataset(Dataset):
         self.img_labels = pd.read_csv(csv_path)
         self.img_labels = self.img_labels[self.img_labels['class label'] != 5]
         self.transform = T.Compose([T.Resize(resize, Image.ANTIALIAS),
+                                      T.CenterCrop(224),
                                       T.ToTensor(),
                                       T.Normalize(mean=[0.485, 0.456, 0.406],
                                                   std=[0.229, 0.224, 0.225])])
