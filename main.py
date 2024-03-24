@@ -81,7 +81,7 @@ def main():
 
     class_name = 'one'
 
-    train_data.to_csv('train_dataset.csv', index=False)
+    # train_data.to_csv('train_dataset.csv', index=False)
     # test_data.to_csv('test_dataset.csv', index=False)
 
     # Use the CustomDataset class
