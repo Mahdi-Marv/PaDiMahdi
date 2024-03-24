@@ -68,13 +68,13 @@ def main():
     df = pd.read_csv('wbc/segmentation_WBC-master/Class Labels of Dataset 1.csv')
 
     df = df[df['class label'] != 5]
-    train_data = df[df['class label'] == 1].sample(n=154, random_state=2)
+    train_data = df[df['class label'] == 1].sample(n=154, random_state=12)
 
     df = df.drop(train_data.index)
 
     test_data = pd.DataFrame()
     for label in [1, 2, 3, 4]:
-        class_samples = df[df['class label'] == label].sample(n=22, random_state=60)
+        class_samples = df[df['class label'] == label].sample(n=22, random_state=1)
         test_data = pd.concat([test_data, class_samples])
 
     total_roc_auc = []
