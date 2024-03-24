@@ -85,11 +85,11 @@ def main():
     test_data.to_csv('test_dataset.csv', index=False)
 
     # Use the CustomDataset class
-    # train_dataset = WBC_dataset(csv_path='train_dataset.csv', image_path='wbc/segmentation_WBC-master/Dataset 1')
+    train_dataset = WBC_dataset(csv_path='train_dataset.csv', image_path='wbc/segmentation_WBC-master/Dataset 1')
     test_dataset = WBC_dataset(csv_path='test_dataset.csv', image_path='wbc/segmentation_WBC-master/Dataset 1', phase='test')
 
     # Create DataLoaders
-    # train_dataloader = DataLoader(train_dataset, batch_size=4, shuffle=True)
+    train_dataloader = DataLoader(train_dataset, batch_size=4, shuffle=True)
     test_dataloader = DataLoader(test_dataset, batch_size=4, shuffle=True)
 
     train_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])
