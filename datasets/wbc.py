@@ -1,0 +1,26 @@
+import torch
+from torch.utils.data import Dataset
+import pandas as pd
+from PIL import Image
+
+class WBC_dataset(Dataset):
+    def __init__(self, image_path="", csv_path="", resize=224, class_name=1):
+        self.path = image_path
+        self.resize = resize
+        self.class_name = class_name
+        self.img_labels = pd.read_csv(csv_path)
+        self.img_labels = self.img_labels[self.img_labels['class label'] != 5]
+
+    def __getitem__(self, idx):
+        img_path = f"{self.path}/{str(self.img_labels.iloc[idx, 0]).zfill(3)}.bmp"
+        image = Image.open(img_path).convert('RGB')
+        label = self.img_labels.iloc[idx, 1]
+
+        clas = 0 if label == 1 else 1
+        return image, clas
+
+    def __len__(self):
+        return len(self.img_labels)
+
+    def transform(self, img):
+        pass
