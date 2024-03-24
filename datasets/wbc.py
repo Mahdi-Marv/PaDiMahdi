@@ -5,10 +5,11 @@ from PIL import Image
 from torchvision import transforms as T
 
 class WBC_dataset(Dataset):
-    def __init__(self, image_path="", csv_path="", resize=224, class_name=1):
+    def __init__(self, image_path="", csv_path="", resize=224, class_name=1, phase='train'):
         self.path = image_path
         self.resize = resize
         self.class_name = class_name
+        self.phase = phase
         self.img_labels = pd.read_csv(csv_path)
         self.img_labels = self.img_labels[self.img_labels['class label'] != 5]
         self.transform = T.Compose([T.Resize(resize, Image.ANTIALIAS),
@@ -26,6 +27,8 @@ class WBC_dataset(Dataset):
         image = self.transform(image)
 
         clas = 0 if label == 1 else 1
+        if self.phase == 'test':
+            print(clas)
         return image, clas
 
     def __len__(self):
