@@ -82,7 +82,7 @@ def main():
     class_name = 'one'
 
     train_data.to_csv('train_dataset.csv', index=False)
-    test_data.to_csv('test_dataset.csv', index=False)
+    # test_data.to_csv('test_dataset.csv', index=False)
 
     # Use the CustomDataset class
     train_dataset = WBC_dataset(csv_path='train_dataset.csv', image_path='wbc/segmentation_WBC-master/Dataset 1')
