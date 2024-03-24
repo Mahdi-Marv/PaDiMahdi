@@ -68,7 +68,7 @@ def main():
     df = pd.read_csv('wbc/segmentation_WBC-master/Class Labels of Dataset 1.csv')
 
     df = df[df['class label'] != 5]
-    train_data = df[df['class label'] == 1].sample(n=154, random_state=2)
+    train_data = df[df['class label'] == 1].sample(n=154, random_state=4)
 
     df = df.drop(train_data.index)
 
