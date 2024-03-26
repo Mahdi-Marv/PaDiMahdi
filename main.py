@@ -108,8 +108,9 @@ def main():
         embedding_vectors = embedding_vectors.view(B, C, H * W)
         mean = torch.mean(embedding_vectors, dim=0).numpy()
         cov = torch.zeros(C, C, H * W).numpy()
+        I = np.identity(C)
         for i in range(H * W):
-            cov[:, :, i] = LedoitWolf().fit(embedding_vectors[:, :, i].numpy()).covariance_ + 0.001
+            cov[:, :, i] = np.cov(embedding_vectors[:, :, i].numpy(), rowvar=False) + 0.01 * I
         # save learned distribution
         train_outputs = [mean, cov]
         with open(train_feature_filepath, 'wb') as f:
