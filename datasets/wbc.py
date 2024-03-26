@@ -11,7 +11,6 @@ class WBC_dataset(Dataset):
         self.class_name = class_name
         self.phase = phase
         self.img_labels = pd.read_csv(csv_path)
-        self.img_labels = self.img_labels[self.img_labels['class label'] != 5]
         self.transform = T.Compose([T.Resize(resize, Image.ANTIALIAS),
                                       T.CenterCrop(224),
                                       T.ToTensor(),
