@@ -67,6 +67,7 @@ def main():
 
     class_name = 'dataset2'
 
+    total_roc_auc = []
 
     # Use the CustomDataset class
     train_dataset = WBC_dataset(csv_path='dataset2_train.csv', image_path='wbc/segmentation_WBC-master/Dataset 1')
