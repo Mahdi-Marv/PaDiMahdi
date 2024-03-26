@@ -69,7 +69,7 @@ def main():
 
 
     # Use the CustomDataset class
-    train_dataset = WBC_dataset(csv_path='dataset2_train.csv.csv', image_path='wbc/segmentation_WBC-master/Dataset 1')
+    train_dataset = WBC_dataset(csv_path='dataset2_train.csv', image_path='wbc/segmentation_WBC-master/Dataset 1')
     test_dataset = WBC_dataset(csv_path='dataset2_test.csv', image_path='wbc/segmentation_WBC-master/Dataset 1', phase='test')
 
     # Create DataLoaders
