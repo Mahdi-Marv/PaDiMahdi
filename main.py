@@ -65,28 +65,12 @@ def main():
     fig, ax = plt.subplots(1, 2, figsize=(20, 10))
     fig_img_rocauc = ax[0]
 
-    df = pd.read_csv('wbc/segmentation_WBC-master/Class Labels of Dataset 1.csv')
+    class_name = 'dataset2'
 
-    df = df[df['class label'] != 5]
-    train_data = df[df['class label'] == 1].sample(n=154, random_state=12)
-
-    df = df.drop(train_data.index)
-
-    test_data = pd.DataFrame()
-    for label in [1, 2, 3, 4]:
-        class_samples = df[df['class label'] == label].sample(n=22, random_state=1)
-        test_data = pd.concat([test_data, class_samples])
-
-    total_roc_auc = []
-
-    class_name = 'one'
-
-    train_data.to_csv('train_dataset.csv', index=False)
-    test_data.to_csv('test_dataset.csv', index=False)
 
     # Use the CustomDataset class
-    train_dataset = WBC_dataset(csv_path='train_dataset.csv', image_path='wbc/segmentation_WBC-master/Dataset 1')
-    test_dataset = WBC_dataset(csv_path='test_dataset.csv', image_path='wbc/segmentation_WBC-master/Dataset 1', phase='test')
+    train_dataset = WBC_dataset(csv_path='dataset2_train.csv.csv', image_path='wbc/segmentation_WBC-master/Dataset 1')
+    test_dataset = WBC_dataset(csv_path='dataset2_test.csv', image_path='wbc/segmentation_WBC-master/Dataset 1', phase='test')
 
     # Create DataLoaders
     train_dataloader = DataLoader(train_dataset, batch_size=4, shuffle=True)
