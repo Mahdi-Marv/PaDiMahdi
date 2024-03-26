@@ -70,11 +70,11 @@ def main():
     total_roc_auc = []
 
     # Use the CustomDataset class
-    # train_dataset = WBC_dataset(csv_path='dataset2_train.csv', image_path='wbc/segmentation_WBC-master/Dataset 1')
-    test_dataset = WBC_dataset(csv_path='dataset2_test.csv', image_path='wbc/segmentation_WBC-master/Dataset 1', phase='test')
+    train_dataset = WBC_dataset(csv_path='dataset2_train.csv', image_path='wbc/segmentation_WBC-master/Dataset 2')
+    test_dataset = WBC_dataset(csv_path='dataset2_test.csv', image_path='wbc/segmentation_WBC-master/Dataset 2', phase='test')
 
     # Create DataLoaders
-    # train_dataloader = DataLoader(train_dataset, batch_size=4, shuffle=True)
+    train_dataloader = DataLoader(train_dataset, batch_size=4, shuffle=True)
     test_dataloader = DataLoader(test_dataset, batch_size=4, shuffle=True)
 
     train_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])
