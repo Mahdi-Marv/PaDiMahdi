@@ -123,8 +123,7 @@ def main():
         visualize_random_samples_from_clean_dataset(train_dataset, "train")
         visualize_random_samples_from_clean_dataset(test_dataset, "test")
 
-        if class_name == 2:
-            test_dataloader = mvtec.test_loader_2(32)
+
 
         train_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])
         test_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])
