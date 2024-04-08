@@ -121,7 +121,7 @@ def main():
         test_dataloader = DataLoader(test_dataset, batch_size=32, pin_memory=True)
 
         visualize_random_samples_from_clean_dataset(train_dataset, "train")
-        visualize_random_samples_from_clean_dataset(test_dataset, "test")
+        visualize_random_samples_from_clean_dataset(test_dataset, f"test{class_name}")
 
 
 

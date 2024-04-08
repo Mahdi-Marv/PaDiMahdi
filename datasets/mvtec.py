@@ -32,16 +32,15 @@ class MVTecDataset(Dataset):
         # load dataset
         # self.x, self.y, self.mask = self.load_dataset_folder()
         if is_train:
-            self.x = glob('/kaggle/input/isic-task3-dataset/dataset/train/NORMAL/*')
+            self.x = glob('/kaggle/working/Mean-Shifted-Anomaly-Detection/APTOS/train/NORMAL/*')
             self.y = [0] * len(self.x)
         else:
-            test_anomaly_path = glob('/kaggle/input/isic-task3-dataset/dataset/test/ABNORMAL/*')
-            test_anomaly_label = [1] * len(test_anomaly_path)
-            test_normal_path = glob('/kaggle/input/isic-task3-dataset/dataset/test/NORMAL/*')
-            test_normal_label = [0] * len(test_normal_path)
+            test_normal_path = glob('/kaggle/working/Mean-Shifted-Anomaly-Detection/APTOS/test/NORMAL/*')
+            test_anomaly_path = glob('/kaggle/working/Mean-Shifted-Anomaly-Detection/APTOS/test/ABNORMAL/*')
 
-            self.x = test_anomaly_label + test_normal_label
-            self.y = test_anomaly_path + test_normal_path
+            self.x = test_normal_path + test_anomaly_path
+            self.y = [0] * len(test_normal_path) + [1] * len(test_anomaly_path)
+
 
         # set transforms
         self.transform_x = T.Compose([T.Resize(resize, Image.ANTIALIAS),
@@ -63,23 +62,31 @@ class MVTecDataset(Dataset):
 
 
 def test_loader_2():
-    df = pd.read_csv('/kaggle/input/pad-ufes-20/PAD-UFES-20/metadata.csv')
+    df = pd.read_csv('/kaggle/input/ddrdataset/DR_grading.csv')
+    label = df["diagnosis"].to_numpy()
+    path = df["id_code"].to_numpy()
 
-    shifted_test_label = df["diagnostic"].to_numpy()
-    shifted_test_label = (shifted_test_label != "NEV")
+    normal_path = path[label == 0]
+    anomaly_path = path[label != 0]
 
-    shifted_test_path = df["img_id"].to_numpy()
-    shifted_test_path = '/kaggle/input/pad-ufes-20/PAD-UFES-20/Dataset/' + shifted_test_path
+    shifted_test_path = list(normal_path) + list(anomaly_path)
+    shifted_test_label = [0] * len(normal_path) + [1] * len(anomaly_path)
 
-    shifted_test_set = PAD_UFES_20(image_path=shifted_test_path, labels=shifted_test_label)
+    shifted_test_path = ["/kaggle/input/ddrdataset/DR_grading/DR_grading/" + s for s in shifted_test_path]
+    shifted_test_set = APTOS(image_path=shifted_test_path, labels=shifted_test_label)
 
     return shifted_test_set
 
 
-class PAD_UFES_20(Dataset):
+class APTOS(Dataset):
     def __init__(self, image_path, labels, count=-1):
         self.image_files = image_path
         self.labels = labels
+        self.transform = T.Compose([T.Resize(256, Image.ANTIALIAS),
+                                      T.CenterCrop(224),
+                                      T.ToTensor(),
+                                      T.Normalize(mean=[0.485, 0.456, 0.406],
+                                                  std=[0.229, 0.224, 0.225])])
         if count != -1:
             if count < len(self.image_files):
                 self.image_files = self.image_files[:count]
@@ -90,11 +97,16 @@ class PAD_UFES_20(Dataset):
                     self.image_files.append(random.choice(self.image_files[:t]))
                     self.labels.append(random.choice(self.labels[:t]))
 
-        self.transform = T.Compose([T.Resize(256, Image.ANTIALIAS),
-                                    T.CenterCrop(224),
-                                    T.ToTensor(),
-                                    T.Normalize(mean=[0.485, 0.456, 0.406],
-                                                std=[0.229, 0.224, 0.225])])
+    def __getitem__(self, index):
+        image_file = self.image_files[index]
+        image = Image.open(image_file)
+        image = image.convert('RGB')
+        if self.transform is not None:
+            image = self.transform(image)
+        return image, self.labels[index]
+
+    def __len__(self):
+        return len(self.image_files)
 
     def __getitem__(self, index):
         image_file = self.image_files[index]
