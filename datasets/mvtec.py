@@ -62,7 +62,7 @@ class MVTecDataset(Dataset):
         return len(self.x)
 
 
-def test_loader_2(batch_size):
+def test_loader_2():
     df = pd.read_csv('/kaggle/input/pad-ufes-20/PAD-UFES-20/metadata.csv')
 
     shifted_test_label = df["diagnostic"].to_numpy()
@@ -72,10 +72,8 @@ def test_loader_2(batch_size):
     shifted_test_path = '/kaggle/input/pad-ufes-20/PAD-UFES-20/Dataset/' + shifted_test_path
 
     shifted_test_set = PAD_UFES_20(image_path=shifted_test_path, labels=shifted_test_label)
-    shifted_test_loader = torch.utils.data.DataLoader(shifted_test_set, shuffle=True,
-                                                      batch_size=batch_size, pin_memory=True)
 
-    return shifted_test_loader
+    return shifted_test_set
 
 
 class PAD_UFES_20(Dataset):

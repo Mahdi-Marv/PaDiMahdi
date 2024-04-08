@@ -23,7 +23,6 @@ from torch.utils.data import DataLoader
 from torchvision.models import wide_resnet50_2, resnet18
 import datasets.mvtec as mvtec
 
-
 # device setup
 use_cuda = torch.cuda.is_available()
 device = torch.device('cuda' if use_cuda else 'cpu')
@@ -37,8 +36,42 @@ def parse_args():
     return parser.parse_args()
 
 
-def main():
+def show_images(images, labels, dataset_name):
+    num_images = len(images)
+    rows = int(num_images / 5) + 1
 
+    fig, axes = plt.subplots(rows, 5, figsize=(15, rows * 3))
+
+    for i, ax in enumerate(axes.flatten()):
+        if i < num_images:
+            ax.imshow(images[i].permute(1, 2, 0))  # permute to (H, W, C) for displaying RGB images
+            ax.set_title(f"Label: {labels[i]}")
+        ax.axis("off")
+
+    plt.savefig(f'{dataset_name}_visualization.png')
+
+
+def visualize_random_samples_from_clean_dataset(dataset, dataset_name):
+    print(f"Start visualization of clean dataset: {dataset_name}")
+    # Choose 20 random indices from the dataset
+    if len(dataset) > 20:
+        random_indices = random.sample(range(len(dataset)), 20)
+    else:
+        random_indices = [i for i in range(len(dataset))]
+
+    # Retrieve corresponding samples
+    random_samples = [dataset[i] for i in random_indices]
+
+    # Separate images and labels
+    images, labels = zip(*random_samples)
+
+    labels = torch.tensor(labels)
+
+    # Show the 20 random samples
+    show_images(images, labels, dataset_name)
+
+
+def main():
     args = parse_args()
 
     # load model
@@ -77,15 +110,18 @@ def main():
     total_roc_auc = []
     # total_pixel_roc_auc = []
 
-
-
     for class_name in mvtec.CLASS_NAMES:
 
         train_dataset = mvtec.MVTecDataset(args.data_path, class_name=class_name, is_train=True)
         train_dataloader = DataLoader(train_dataset, batch_size=32, pin_memory=True)
 
         test_dataset = mvtec.MVTecDataset(args.data_path, class_name=class_name, is_train=False)
+        if class_name == 2:
+            test_dataset = mvtec.test_loader_2()
         test_dataloader = DataLoader(test_dataset, batch_size=32, pin_memory=True)
+
+        visualize_random_samples_from_clean_dataset(train_dataset, "train")
+        visualize_random_samples_from_clean_dataset(test_dataset, "test")
 
         if class_name == 2:
             test_dataloader = mvtec.test_loader_2(32)
@@ -152,7 +188,7 @@ def main():
             outputs = []
         for k, v in test_outputs.items():
             test_outputs[k] = torch.cat(v, 0)
-        
+
         # Embedding concat
         embedding_vectors = test_outputs['layer1']
         for layer_name in ['layer2', 'layer3']:
@@ -160,7 +196,7 @@ def main():
 
         # randomly select d dimension
         embedding_vectors = torch.index_select(embedding_vectors, 1, idx)
-        
+
         # calculate distance matrix
         B, C, H, W = embedding_vectors.size()
         embedding_vectors = embedding_vectors.view(B, C, H * W).numpy()
@@ -177,16 +213,16 @@ def main():
         dist_list = torch.tensor(dist_list)
         score_map = F.interpolate(dist_list.unsqueeze(1), size=x.size(2), mode='bilinear',
                                   align_corners=False).squeeze().numpy()
-        
+
         # apply gaussian smoothing on the score map
         for i in range(score_map.shape[0]):
             score_map[i] = gaussian_filter(score_map[i], sigma=4)
-        
+
         # Normalization
         max_score = score_map.max()
         min_score = score_map.min()
         scores = (score_map - min_score) / (max_score - min_score)
-        
+
         # calculate image-level ROC AUC score
         img_scores = scores.reshape(scores.shape[0], -1).max(axis=1)
         gt_list = np.asarray(gt_list)
@@ -195,7 +231,7 @@ def main():
         total_roc_auc.append(img_roc_auc)
         print('image ROCAUC: %.3f' % (img_roc_auc))
         fig_img_rocauc.plot(fpr, tpr, label='%s img_ROCAUC: %.3f' % (class_name, img_roc_auc))
-        
+
         # get optimal threshold
         # gt_mask = np.asarray(gt_mask_list)
         # precision, recall, thresholds = precision_recall_curve(gt_mask.flatten(), scores.flatten())
@@ -203,7 +239,6 @@ def main():
         # b = precision + recall
         # f1 = np.divide(a, b, out=np.zeros_like(a), where=b != 0)
         # threshold = thresholds[np.argmax(f1)]
-
 
 
 def plot_fig(test_img, scores, gts, threshold, save_dir, class_name):
@@ -264,7 +299,7 @@ def denormalization(x):
     mean = np.array([0.485, 0.456, 0.406])
     std = np.array([0.229, 0.224, 0.225])
     x = (((x.transpose(1, 2, 0) * std) + mean) * 255.).astype(np.uint8)
-    
+
     return x
 
 
