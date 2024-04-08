@@ -40,8 +40,8 @@ class MVTecDataset(Dataset):
             test_normal_path = glob('/kaggle/input/isic-task3-dataset/dataset/test/NORMAL/*')
             test_normal_label = [0] * len(test_normal_path)
 
-            self.x = test_anomaly_label + test_normal_label
-            self.y = test_anomaly_path + test_normal_path
+            self.y = test_anomaly_label + test_normal_label
+            self.x = test_anomaly_path + test_normal_path
 
         # set transforms
         self.transform_x = T.Compose([T.Resize(resize, Image.ANTIALIAS),
@@ -51,9 +51,10 @@ class MVTecDataset(Dataset):
                                                   std=[0.229, 0.224, 0.225])])
 
     def __getitem__(self, idx):
-        x, y = self.x[idx], self.y[idx]
+        file, y = self.x[idx], self.y[idx]
+        print(file)
 
-        x = Image.open(x).convert('RGB')
+        x = Image.open(file).convert('RGB')
         x = self.transform_x(x)
 
         return x, y, ''
