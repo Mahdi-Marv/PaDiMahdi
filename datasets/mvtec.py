@@ -52,7 +52,7 @@ class MVTecDataset(Dataset):
 
     def __getitem__(self, idx):
         file, y = self.x[idx], self.y[idx]
-        print(file)
+
 
         x = Image.open(file).convert('RGB')
         x = self.transform_x(x)
