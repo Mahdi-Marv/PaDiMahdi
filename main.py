@@ -140,9 +140,13 @@ def main():
                     train_outputs[k].append(v.cpu().detach())
                 # initialize hook outputs
                 outputs = []
+
+            print('end dataloader')
+
             for k, v in train_outputs.items():
                 train_outputs[k] = torch.cat(v, 0)
 
+            print('torch cat end')
             # Embedding concat
             embedding_vectors = train_outputs['layer1']
             for layer_name in ['layer2', 'layer3']:
