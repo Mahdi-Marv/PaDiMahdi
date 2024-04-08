@@ -137,9 +137,10 @@ def main():
                     _ = model(x.to(device))
                 # get intermediate layer outputs
                 for k, v in zip(train_outputs.keys(), outputs):
-                    train_outputs[k].append(v)
+                    train_outputs[k].append(v.cpu().detach())
                 # initialize hook outputs
                 outputs = []
+                torch.cuda.empty_cache()  # Periodically empty the cache to free unused memory
 
             print('end dataloader')
 
