@@ -25,7 +25,7 @@ import datasets.mvtec as mvtec
 
 # device setup
 use_cuda = torch.cuda.is_available()
-device = torch.device('cuda' if use_cuda else 'cpu')
+device = torch.device('cuda:0' if use_cuda else 'cpu')
 
 
 def parse_args():
