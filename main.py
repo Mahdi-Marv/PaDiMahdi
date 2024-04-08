@@ -63,7 +63,7 @@ def visualize_random_samples_from_clean_dataset(dataset, dataset_name):
     random_samples = [dataset[i] for i in random_indices]
 
     # Separate images and labels
-    images, labels = zip(*random_samples)
+    images, labels, _ = zip(*random_samples)
 
     labels = torch.tensor(labels)
 
