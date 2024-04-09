@@ -147,7 +147,7 @@ def main():
                     _ = model(x.to(device))
                 # get intermediate layer outputs
                 for k, v in zip(train_outputs.keys(), outputs):
-                    train_outputs[k].append(v.cpu().detach())
+                    train_outputs[k].append(v)
                 # initialize hook outputs
                 outputs = []
                 torch.cuda.empty_cache()  # Periodically empty the cache to free unused memory
@@ -162,7 +162,7 @@ def main():
             embedding_vectors = train_outputs['layer1']
             for layer_name in ['layer2', 'layer3']:
                 embedding_vectors = embedding_concat(embedding_vectors, train_outputs[layer_name])
-
+            print('embed')
             # randomly select d dimension
             embedding_vectors = torch.index_select(embedding_vectors, 1, idx)
             # calculate multivariate Gaussian distribution
@@ -175,6 +175,7 @@ def main():
                 # cov[:, :, i] = LedoitWolf().fit(embedding_vectors[:, :, i].numpy()).covariance_
                 cov[:, :, i] = np.cov(embedding_vectors[:, :, i].numpy(), rowvar=False) + 0.01 * I
             # save learned distribution
+            print('matrix')
             train_outputs = [mean, cov]
             with open(train_feature_filepath, 'wb') as f:
                 pickle.dump(train_outputs, f)
