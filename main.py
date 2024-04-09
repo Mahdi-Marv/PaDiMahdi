@@ -130,8 +130,8 @@ def main():
             test_dataset = mvtec.test_loader_2()
         test_dataloader = DataLoader(test_dataset, batch_size=32, pin_memory=True)
 
-        visualize_random_samples_from_clean_dataset(train_dataset, "train")
-        visualize_random_samples_from_clean_dataset(test_dataset, "test")
+        # visualize_random_samples_from_clean_dataset(train_dataset, "train")
+        # visualize_random_samples_from_clean_dataset(test_dataset, "test")
 
 
 
@@ -155,7 +155,7 @@ def main():
             print('end dataloader')
 
             for k, v in train_outputs.items():
-                train_outputs[k] = torch.cat(v, 0)
+                train_outputs[k] = torch.cat(v.cpu().detach(), 0)
 
             print('torch cat end')
             # Embedding concat
