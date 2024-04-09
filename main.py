@@ -159,7 +159,7 @@ def main():
 
             print('torch cat end')
             # Embedding concat
-            tmp = test_outputs['layer1'].shape[0]
+            tmp = np.array(test_outputs['layer1']).shape[0]
             embedding_vectors1 = None
             for tmp_i in range(0, tmp, 32):
                 if tmp_i + 32 >= tmp:
