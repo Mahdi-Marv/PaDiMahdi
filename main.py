@@ -159,21 +159,26 @@ def main():
 
             print('torch cat end')
             # Embedding concat
-            embedding_vectors = test_outputs['layer1']
-            # randomly select d dimension
-            condition = idx < np.array(embedding_vectors).shape[1]
-            idx_1 = idx[condition]
-            embedding_vectors = torch.index_select(embedding_vectors, 1, idx_1)
+            tmp = test_outputs['layer1'].shape[0]
+            embedding_vectors1 = None
+            for tmp_i in range(0, tmp, 32):
+                if tmp_i + 32 >= tmp:
+                    embedding_vectors = test_outputs['layer1'][tmp_i:]
+                else:
+                    embedding_vectors = test_outputs['layer1'][tmp_i:tmp_i + 32]
+                for layer_name in ['layer2', 'layer3']:
+                    if tmp_i + 32 >= tmp:
+                        embedding_vectors = embedding_concat(embedding_vectors, test_outputs[layer_name][tmp_i:])
+                    else:
+                        embedding_vectors = embedding_concat(embedding_vectors,
+                                                             test_outputs[layer_name][tmp_i:tmp_i + 32])
+                embedding_vectors = torch.index_select(embedding_vectors, 1, idx)
+                if tmp_i != 0:
+                    embedding_vectors1 = torch.cat([embedding_vectors1, embedding_vectors], 0)
+                else:
+                    embedding_vectors1 = embedding_vectors
+            embedding_vectors = embedding_vectors1
 
-            for layer_name in ['layer2', 'layer3']:
-                emb_vect = test_outputs[layer_name]
-                condition1 = embedding_vectors.shape[1] <= idx
-                condition2 = idx < (embedding_vectors.shape[1] + emb_vect.shape[1])
-                condition = torch.logical_and(condition1, condition2)
-                idx_1 = idx[condition]
-                idx_1 -= embedding_vectors.shape[1]
-                emb_vect = torch.index_select(emb_vect, 1, idx_1)
-                embedding_vectors = embedding_concat(embedding_vectors, emb_vect)
 
             print('embed')
             # randomly select d dimension
