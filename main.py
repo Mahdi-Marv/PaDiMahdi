@@ -19,7 +19,7 @@ import matplotlib
 
 import torch
 import torch.nn.functional as F
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 from torchvision.models import wide_resnet50_2, resnet18
 import datasets.mvtec as mvtec
 
@@ -113,7 +113,17 @@ def main():
     for class_name in mvtec.CLASS_NAMES:
 
         train_dataset = mvtec.MVTecDataset(args.data_path, class_name=class_name, is_train=True)
-        train_dataloader = DataLoader(train_dataset, batch_size=32, pin_memory=True)
+
+        total_train_samples = len(train_dataset)
+        desired_train_samples = int(total_train_samples * 0.6)  # Set this to however many samples you want
+
+        # Generate random, unique indices based on your desired sample size
+        subset_indices = np.random.choice(total_train_samples, desired_train_samples, replace=False)
+
+        # Create a Subset
+        train_dataset_subset = Subset(train_dataset, subset_indices)
+
+        train_dataloader = DataLoader(train_dataset_subset, batch_size=32, pin_memory=True)
 
         test_dataset = mvtec.MVTecDataset(args.data_path, class_name=class_name, is_train=False)
         if class_name == 2:
