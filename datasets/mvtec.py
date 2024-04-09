@@ -12,7 +12,7 @@ import pandas as pd
 import random
 
 # URL = 'ftp://guest:GU.205dldo@ftp.softronics.ch/mvtec_anomaly_detection/mvtec_anomaly_detection.tar.xz'
-CLASS_NAMES = [1, 2]
+CLASS_NAMES = [2]
 
 
 class MVTecDataset(Dataset):
