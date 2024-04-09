@@ -103,7 +103,7 @@ class PAD_UFES_20(Dataset):
         image = image.convert('RGB')
         if self.transform is not None:
             image = self.transform(image)
-        return image, self.labels[index]
+        return image, self.labels[index], ''
 
     def __len__(self):
         return len(self.image_files)

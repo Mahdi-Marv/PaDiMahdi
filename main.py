@@ -202,6 +202,9 @@ def main():
             with open(train_feature_filepath, 'rb') as f:
                 train_outputs = pickle.load(f)
 
+
+        print('testing begins')
+
         gt_list = []
         # gt_mask_list = []
         test_imgs = []
