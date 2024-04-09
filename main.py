@@ -115,7 +115,7 @@ def main():
         train_dataset = mvtec.MVTecDataset(args.data_path, class_name=class_name, is_train=True)
 
         total_train_samples = len(train_dataset)
-        desired_train_samples = int(total_train_samples * 0.3)  # Set this to however many samples you want
+        desired_train_samples = int(total_train_samples * 0.2)  # Set this to however many samples you want
 
         # Generate random, unique indices based on your desired sample size
         subset_indices = np.random.choice(total_train_samples, desired_train_samples, replace=False)
