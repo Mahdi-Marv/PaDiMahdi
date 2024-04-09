@@ -129,13 +129,13 @@ def main():
         if class_name == 2:
             test_dataset = mvtec.test_loader_2()
             total_train_samples = len(test_dataset)
-            desired_train_samples = int(total_train_samples * 0.2)  # Set this to however many samples you want
+            desired_train_samples = int(total_train_samples * 0.9)  # Set this to however many samples you want
 
             # Generate random, unique indices based on your desired sample size
             subset_indices = np.random.choice(total_train_samples, desired_train_samples, replace=False)
             test_dataset = Subset(test_dataset, subset_indices)
 
-        test_dataloader = DataLoader(test_dataset, batch_size=32, pin_memory=True)
+        test_dataloader = DataLoader(test_dataset, batch_size=8, pin_memory=True)
 
         visualize_random_samples_from_clean_dataset(train_dataset, "train")
         visualize_random_samples_from_clean_dataset(test_dataset, "test")
