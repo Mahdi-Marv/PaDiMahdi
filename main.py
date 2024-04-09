@@ -159,19 +159,19 @@ def main():
 
             print('torch cat end')
             # Embedding concat
-            tmp = np.array(test_outputs['layer1']).shape[0]
+            tmp = train_outputs['layer1'].shape[0]
             embedding_vectors1 = None
             for tmp_i in range(0, tmp, 32):
                 if tmp_i + 32 >= tmp:
-                    embedding_vectors = test_outputs['layer1'][tmp_i:]
+                    embedding_vectors = train_outputs['layer1'][tmp_i:]
                 else:
-                    embedding_vectors = test_outputs['layer1'][tmp_i:tmp_i + 32]
+                    embedding_vectors = train_outputs['layer1'][tmp_i:tmp_i + 32]
                 for layer_name in ['layer2', 'layer3']:
                     if tmp_i + 32 >= tmp:
-                        embedding_vectors = embedding_concat(embedding_vectors, test_outputs[layer_name][tmp_i:])
+                        embedding_vectors = embedding_concat(embedding_vectors, train_outputs[layer_name][tmp_i:])
                     else:
                         embedding_vectors = embedding_concat(embedding_vectors,
-                                                             test_outputs[layer_name][tmp_i:tmp_i + 32])
+                                                             train_outputs[layer_name][tmp_i:tmp_i + 32])
                 embedding_vectors = torch.index_select(embedding_vectors, 1, idx)
                 if tmp_i != 0:
                     embedding_vectors1 = torch.cat([embedding_vectors1, embedding_vectors], 0)
