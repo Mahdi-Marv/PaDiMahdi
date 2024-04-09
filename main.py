@@ -147,7 +147,7 @@ def main():
                     _ = model(x.to(device))
                 # get intermediate layer outputs
                 for k, v in zip(train_outputs.keys(), outputs):
-                    train_outputs[k].append(v)
+                    train_outputs[k].append(v.cpu().detach())
                 # initialize hook outputs
                 outputs = []
                 torch.cuda.empty_cache()  # Periodically empty the cache to free unused memory
@@ -155,7 +155,7 @@ def main():
             print('end dataloader')
 
             for k, v in train_outputs.items():
-                train_outputs[k] = torch.cat(v.cpu().detach(), 0)
+                train_outputs[k] = torch.cat(v, 0)
 
             print('torch cat end')
             # Embedding concat
