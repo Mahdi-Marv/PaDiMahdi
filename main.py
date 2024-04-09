@@ -161,7 +161,7 @@ def main():
             # Embedding concat
             embedding_vectors = test_outputs['layer1']
             # randomly select d dimension
-            condition = idx < embedding_vectors.shape[1]
+            condition = idx < np.array(embedding_vectors).shape[1]
             idx_1 = idx[condition]
             embedding_vectors = torch.index_select(embedding_vectors, 1, idx_1)
 
