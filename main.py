@@ -182,7 +182,7 @@ def main():
 
             print('embed')
             # randomly select d dimension
-            embedding_vectors = torch.index_select(embedding_vectors, 1, idx)
+            # embedding_vectors = torch.index_select(embedding_vectors, 1, idx)
             # calculate multivariate Gaussian distribution
             B, C, H, W = embedding_vectors.size()
             embedding_vectors = embedding_vectors.view(B, C, H * W)
