@@ -115,7 +115,7 @@ def main():
         train_dataset = mvtec.MVTecDataset(args.data_path, class_name=class_name, is_train=True)
 
         total_train_samples = len(train_dataset)
-        desired_train_samples = int(total_train_samples * 0.1)  # Set this to however many samples you want
+        desired_train_samples = int(total_train_samples * 0.3)  # Set this to however many samples you want
 
         # Generate random, unique indices based on your desired sample size
         subset_indices = np.random.choice(total_train_samples, desired_train_samples, replace=False)
@@ -139,7 +139,7 @@ def main():
         test_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])
 
         # extract train set features
-        train_feature_filepath = os.path.join(args.save_path, 'temp_%s' % args.arch, 'train_%s.pkl' % class_name)
+        train_feature_filepath = os.path.join(args.save_path, 'temp_%s' % args.arch, 'train_%s.pkl' % 'isic')
         if not os.path.exists(train_feature_filepath):
             for (x, _, _) in tqdm(train_dataloader, '| feature extraction | train | %s |' % class_name):
                 # model prediction
@@ -223,12 +223,27 @@ def main():
             test_outputs[k] = torch.cat(v, 0)
 
         # Embedding concat
-        embedding_vectors = test_outputs['layer1']
-        for layer_name in ['layer2', 'layer3']:
-            embedding_vectors = embedding_concat(embedding_vectors, test_outputs[layer_name])
+        tmp = test_outputs['layer1'].shape[0]
+        embedding_vectors1 = None
+        for tmp_i in range(0, tmp, 32):
+            if tmp_i + 32 >= tmp:
+                embedding_vectors = test_outputs['layer1'][tmp_i:]
+            else:
+                embedding_vectors = test_outputs['layer1'][tmp_i:tmp_i + 32]
+            for layer_name in ['layer2', 'layer3']:
+                if tmp_i + 32 >= tmp:
+                    embedding_vectors = embedding_concat(embedding_vectors, test_outputs[layer_name][tmp_i:])
+                else:
+                    embedding_vectors = embedding_concat(embedding_vectors, test_outputs[layer_name][tmp_i:tmp_i + 32])
+            embedding_vectors = torch.index_select(embedding_vectors, 1, idx)
+            if tmp_i != 0:
+                embedding_vectors1 = torch.cat([embedding_vectors1, embedding_vectors], 0)
+            else:
+                embedding_vectors1 = embedding_vectors
+        embedding_vectors = embedding_vectors1
 
         # randomly select d dimension
-        embedding_vectors = torch.index_select(embedding_vectors, 1, idx)
+        # embedding_vectors = torch.index_select(embedding_vectors, 1, idx)
 
         # calculate distance matrix
         B, C, H, W = embedding_vectors.size()
