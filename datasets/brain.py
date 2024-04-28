@@ -48,4 +48,4 @@ class Brain(Dataset):
 
         y = self.test_label[idx]
 
-        return x, y, None
+        return x, y, 'None'
