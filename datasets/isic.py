@@ -48,6 +48,7 @@ class Isic(Dataset):
                 self.test_label = [0] * len(test_normal_path) + [1] * len(test_anomaly_path)
             else:
                 df = pd.read_csv('/kaggle/input/pad-ufes-20/PAD-UFES-20/metadata.csv')
+                df = df.sample(n=1000)
 
                 shifted_test_label = df["diagnostic"].to_numpy()
                 shifted_test_label = (shifted_test_label != "NEV")
