@@ -22,18 +22,62 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torchvision.models import wide_resnet50_2, resnet18
 import datasets.mvtec as mvtec
+from datasets.brain import Brain
 
 
 # device setup
 use_cuda = torch.cuda.is_available()
 device = torch.device('cuda' if use_cuda else 'cpu')
 
+def show_images(images, labels, dataset_name):
+    num_images = len(images)
+    rows = int(np.ceil(num_images / 5))  # Use np.ceil to ensure enough rows
+
+    fig, axes = plt.subplots(rows, 5, figsize=(15, rows * 3), squeeze=False)  # Ensure axes is always a 2D array
+
+    for i, ax in enumerate(axes.flatten()):
+        if i < num_images:
+            # Check if image is a tensor, if so, convert to numpy
+            if isinstance(images[i], torch.Tensor):
+                image = images[i].numpy()
+            else:
+                image = images[i]
+            # If image is in (C, H, W) format, transpose it to (H, W, C)
+            if image.shape[0] in {1, 3}:  # Assuming grayscale (1 channel) or RGB (3 channels)
+                image = image.transpose(1, 2, 0)
+            if image.shape[2] == 1:  # If grayscale, convert to RGB for consistency
+                image = np.repeat(image, 3, axis=2)
+            ax.imshow(image)
+            ax.set_title(f"Label: {labels[i].item()}")
+        ax.axis("off")
+
+    plt.tight_layout()
+    plt.savefig(f'{dataset_name}_visualization.png')
+
+def visualize_random_samples_from_clean_dataset(dataset, dataset_name):
+    print(f"Start visualization of clean dataset: {dataset_name}")
+    # Choose 20 random indices from the dataset
+    if len(dataset) > 20:
+        random_indices = random.sample(range(len(dataset)), 20)
+    else:
+        random_indices = [i for i in range(len(dataset))]
+
+    # Retrieve corresponding samples
+    random_samples = [dataset[i] for i in random_indices]
+
+    # Separate images and labels
+    images, labels, _ = zip(*random_samples)
+
+    labels = torch.tensor(labels)
+
+    # Show the 20 random samples
+    show_images(images, labels, dataset_name)
 
 def parse_args():
     parser = argparse.ArgumentParser('PaDiM')
     parser.add_argument('--data_path', type=str, default='D:/dataset/mvtec_anomaly_detection')
     parser.add_argument('--save_path', type=str, default='./mvtec_result')
-    parser.add_argument('--arch', type=str, choices=['resnet18', 'wide_resnet50_2'], default='wide_resnet50_2')
+    parser.add_argument('--arch', type=str, choices=['resnet18', 'wide_resnet50_2'], default='resnet18')
     return parser.parse_args()
 
 
@@ -76,12 +120,14 @@ def main():
 
     total_roc_auc = []
     total_pixel_roc_auc = []
+    test_ids = [1, 2]
+    class_name = 'brain'
+    for id in test_ids:
 
-    for class_name in mvtec.CLASS_NAMES:
-
-        train_dataset = mvtec.MVTecDataset(args.data_path, class_name=class_name, is_train=True)
+        train_dataset = Brain(is_train=True)
         train_dataloader = DataLoader(train_dataset, batch_size=32, pin_memory=True)
-        test_dataset = mvtec.MVTecDataset(args.data_path, class_name=class_name, is_train=False)
+
+        test_dataset = Brain(is_train=False, test_id=id)
         test_dataloader = DataLoader(test_dataset, batch_size=32, pin_memory=True)
 
         train_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])
@@ -128,14 +174,14 @@ def main():
                 train_outputs = pickle.load(f)
 
         gt_list = []
-        gt_mask_list = []
+        # gt_mask_list = []
         test_imgs = []
 
         # extract test set features
         for (x, y, mask) in tqdm(test_dataloader, '| feature extraction | test | %s |' % class_name):
             test_imgs.extend(x.cpu().detach().numpy())
             gt_list.extend(y.cpu().detach().numpy())
-            gt_mask_list.extend(mask.cpu().detach().numpy())
+            # gt_mask_list.extend(mask.cpu().detach().numpy())
             # model prediction
             with torch.no_grad():
                 _ = model(x.to(device))
@@ -188,91 +234,91 @@ def main():
         img_roc_auc = roc_auc_score(gt_list, img_scores)
         total_roc_auc.append(img_roc_auc)
         print('image ROCAUC: %.3f' % (img_roc_auc))
-        fig_img_rocauc.plot(fpr, tpr, label='%s img_ROCAUC: %.3f' % (class_name, img_roc_auc))
+        # fig_img_rocauc.plot(fpr, tpr, label='%s img_ROCAUC: %.3f' % (class_name, img_roc_auc))
         
         # get optimal threshold
-        gt_mask = np.asarray(gt_mask_list)
-        precision, recall, thresholds = precision_recall_curve(gt_mask.flatten(), scores.flatten())
-        a = 2 * precision * recall
-        b = precision + recall
-        f1 = np.divide(a, b, out=np.zeros_like(a), where=b != 0)
-        threshold = thresholds[np.argmax(f1)]
+        # gt_mask = np.asarray(gt_mask_list)
+        # precision, recall, thresholds = precision_recall_curve(gt_mask.flatten(), scores.flatten())
+        # a = 2 * precision * recall
+        # b = precision + recall
+        # f1 = np.divide(a, b, out=np.zeros_like(a), where=b != 0)
+        # threshold = thresholds[np.argmax(f1)]
 
         # calculate per-pixel level ROCAUC
-        fpr, tpr, _ = roc_curve(gt_mask.flatten(), scores.flatten())
-        per_pixel_rocauc = roc_auc_score(gt_mask.flatten(), scores.flatten())
-        total_pixel_roc_auc.append(per_pixel_rocauc)
-        print('pixel ROCAUC: %.3f' % (per_pixel_rocauc))
+        # fpr, tpr, _ = roc_curve(gt_mask.flatten(), scores.flatten())
+        # per_pixel_rocauc = roc_auc_score(gt_mask.flatten(), scores.flatten())
+        # total_pixel_roc_auc.append(per_pixel_rocauc)
+        # print('pixel ROCAUC: %.3f' % (per_pixel_rocauc))
 
-        fig_pixel_rocauc.plot(fpr, tpr, label='%s ROCAUC: %.3f' % (class_name, per_pixel_rocauc))
-        save_dir = args.save_path + '/' + f'pictures_{args.arch}'
-        os.makedirs(save_dir, exist_ok=True)
-        plot_fig(test_imgs, scores, gt_mask_list, threshold, save_dir, class_name)
+        # fig_pixel_rocauc.plot(fpr, tpr, label='%s ROCAUC: %.3f' % (class_name, per_pixel_rocauc))
+        # save_dir = args.save_path + '/' + f'pictures_{args.arch}'
+        # os.makedirs(save_dir, exist_ok=True)
+        # plot_fig(test_imgs, scores, gt_mask_list, threshold, save_dir, class_name)
 
-    print('Average ROCAUC: %.3f' % np.mean(total_roc_auc))
-    fig_img_rocauc.title.set_text('Average image ROCAUC: %.3f' % np.mean(total_roc_auc))
-    fig_img_rocauc.legend(loc="lower right")
+    # print('Average ROCAUC: %.3f' % np.mean(total_roc_auc))
+    # fig_img_rocauc.title.set_text('Average image ROCAUC: %.3f' % np.mean(total_roc_auc))
+    # fig_img_rocauc.legend(loc="lower right")
+    #
+    # print('Average pixel ROCUAC: %.3f' % np.mean(total_pixel_roc_auc))
+    # fig_pixel_rocauc.title.set_text('Average pixel ROCAUC: %.3f' % np.mean(total_pixel_roc_auc))
+    # fig_pixel_rocauc.legend(loc="lower right")
+    #
+    # fig.tight_layout()
+    # fig.savefig(os.path.join(args.save_path, 'roc_curve.png'), dpi=100)
 
-    print('Average pixel ROCUAC: %.3f' % np.mean(total_pixel_roc_auc))
-    fig_pixel_rocauc.title.set_text('Average pixel ROCAUC: %.3f' % np.mean(total_pixel_roc_auc))
-    fig_pixel_rocauc.legend(loc="lower right")
 
-    fig.tight_layout()
-    fig.savefig(os.path.join(args.save_path, 'roc_curve.png'), dpi=100)
-
-
-def plot_fig(test_img, scores, gts, threshold, save_dir, class_name):
-    num = len(scores)
-    vmax = scores.max() * 255.
-    vmin = scores.min() * 255.
-    for i in range(num):
-        img = test_img[i]
-        img = denormalization(img)
-        gt = gts[i].transpose(1, 2, 0).squeeze()
-        heat_map = scores[i] * 255
-        mask = scores[i]
-        mask[mask > threshold] = 1
-        mask[mask <= threshold] = 0
-        kernel = morphology.disk(4)
-        mask = morphology.opening(mask, kernel)
-        mask *= 255
-        vis_img = mark_boundaries(img, mask, color=(1, 0, 0), mode='thick')
-        fig_img, ax_img = plt.subplots(1, 5, figsize=(12, 3))
-        fig_img.subplots_adjust(right=0.9)
-        norm = matplotlib.colors.Normalize(vmin=vmin, vmax=vmax)
-        for ax_i in ax_img:
-            ax_i.axes.xaxis.set_visible(False)
-            ax_i.axes.yaxis.set_visible(False)
-        ax_img[0].imshow(img)
-        ax_img[0].title.set_text('Image')
-        ax_img[1].imshow(gt, cmap='gray')
-        ax_img[1].title.set_text('GroundTruth')
-        ax = ax_img[2].imshow(heat_map, cmap='jet', norm=norm)
-        ax_img[2].imshow(img, cmap='gray', interpolation='none')
-        ax_img[2].imshow(heat_map, cmap='jet', alpha=0.5, interpolation='none')
-        ax_img[2].title.set_text('Predicted heat map')
-        ax_img[3].imshow(mask, cmap='gray')
-        ax_img[3].title.set_text('Predicted mask')
-        ax_img[4].imshow(vis_img)
-        ax_img[4].title.set_text('Segmentation result')
-        left = 0.92
-        bottom = 0.15
-        width = 0.015
-        height = 1 - 2 * bottom
-        rect = [left, bottom, width, height]
-        cbar_ax = fig_img.add_axes(rect)
-        cb = plt.colorbar(ax, shrink=0.6, cax=cbar_ax, fraction=0.046)
-        cb.ax.tick_params(labelsize=8)
-        font = {
-            'family': 'serif',
-            'color': 'black',
-            'weight': 'normal',
-            'size': 8,
-        }
-        cb.set_label('Anomaly Score', fontdict=font)
-
-        fig_img.savefig(os.path.join(save_dir, class_name + '_{}'.format(i)), dpi=100)
-        plt.close()
+# def plot_fig(test_img, scores, gts, threshold, save_dir, class_name):
+#     num = len(scores)
+#     vmax = scores.max() * 255.
+#     vmin = scores.min() * 255.
+#     for i in range(num):
+#         img = test_img[i]
+#         img = denormalization(img)
+#         gt = gts[i].transpose(1, 2, 0).squeeze()
+#         heat_map = scores[i] * 255
+#         mask = scores[i]
+#         mask[mask > threshold] = 1
+#         mask[mask <= threshold] = 0
+#         kernel = morphology.disk(4)
+#         mask = morphology.opening(mask, kernel)
+#         mask *= 255
+#         vis_img = mark_boundaries(img, mask, color=(1, 0, 0), mode='thick')
+#         fig_img, ax_img = plt.subplots(1, 5, figsize=(12, 3))
+#         fig_img.subplots_adjust(right=0.9)
+#         norm = matplotlib.colors.Normalize(vmin=vmin, vmax=vmax)
+#         for ax_i in ax_img:
+#             ax_i.axes.xaxis.set_visible(False)
+#             ax_i.axes.yaxis.set_visible(False)
+#         ax_img[0].imshow(img)
+#         ax_img[0].title.set_text('Image')
+#         ax_img[1].imshow(gt, cmap='gray')
+#         ax_img[1].title.set_text('GroundTruth')
+#         ax = ax_img[2].imshow(heat_map, cmap='jet', norm=norm)
+#         ax_img[2].imshow(img, cmap='gray', interpolation='none')
+#         ax_img[2].imshow(heat_map, cmap='jet', alpha=0.5, interpolation='none')
+#         ax_img[2].title.set_text('Predicted heat map')
+#         ax_img[3].imshow(mask, cmap='gray')
+#         ax_img[3].title.set_text('Predicted mask')
+#         ax_img[4].imshow(vis_img)
+#         ax_img[4].title.set_text('Segmentation result')
+#         left = 0.92
+#         bottom = 0.15
+#         width = 0.015
+#         height = 1 - 2 * bottom
+#         rect = [left, bottom, width, height]
+#         cbar_ax = fig_img.add_axes(rect)
+#         cb = plt.colorbar(ax, shrink=0.6, cax=cbar_ax, fraction=0.046)
+#         cb.ax.tick_params(labelsize=8)
+#         font = {
+#             'family': 'serif',
+#             'color': 'black',
+#             'weight': 'normal',
+#             'size': 8,
+#         }
+#         cb.set_label('Anomaly Score', fontdict=font)
+#
+#         fig_img.savefig(os.path.join(save_dir, class_name + '_{}'.format(i)), dpi=100)
+#         plt.close()
 
 
 def denormalization(x):
