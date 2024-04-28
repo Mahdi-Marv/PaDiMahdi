@@ -42,7 +42,7 @@ class Brain(Dataset):
     def __len__(self):
         return len(self.image_paths)
     def __getitem__(self, idx):
-        x = Image.open(self.image_paths[idx])
+        x = self.image_paths[idx]
         x = Image.open(x).convert('RGB')
         x = self.transform_x(x)
 
