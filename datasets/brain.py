@@ -25,6 +25,9 @@ class Brain(Dataset):
                 test_normal_path = glob('./Br35H/dataset/test/normal/*')
                 test_anomaly_path = glob('./Br35H/dataset/test/anomaly/*')
 
+                print('len test1 normal: ', len(test_normal_path))
+                print('len test1 anomaly: ', len(test_anomaly_path))
+
                 test_normal_path = random.sample(test_normal_path, 300)
                 test_anomaly_path = random.sample(test_anomaly_path, 300)
 
