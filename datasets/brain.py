@@ -8,6 +8,7 @@ import torch
 from torch.utils.data import Dataset
 from torchvision import transforms as T
 from glob import glob
+import random
 
 class Brain(Dataset):
     def __init__(self, is_train=True, resize=256, cropsize=224, test_id=1):
@@ -23,6 +24,10 @@ class Brain(Dataset):
             if test_id == 1:
                 test_normal_path = glob('./Br35H/dataset/test/normal/*')
                 test_anomaly_path = glob('./Br35H/dataset/test/anomaly/*')
+
+                test_normal_path = random.sample(test_normal_path, 500)
+                test_anomaly_path = random.sample(test_anomaly_path, 500)
+
 
 
                 self.image_paths = test_normal_path + test_anomaly_path
