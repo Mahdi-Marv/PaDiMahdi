@@ -24,7 +24,11 @@ class Brain(Dataset):
                 test_normal_path = glob('./Br35H/dataset/test/normal/*')
                 test_anomaly_path = glob('./Br35H/dataset/test/anomaly/*')
 
+
                 self.image_paths = test_normal_path + test_anomaly_path
+
+                print('len test1 set: ', len(self.image_paths))
+
                 self.test_label = [0] * len(test_normal_path) + [1] * len(test_anomaly_path)
             else:
                 test_normal_path = glob('./brats/dataset/test/normal/*')
