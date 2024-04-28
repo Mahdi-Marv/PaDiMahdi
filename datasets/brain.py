@@ -28,8 +28,8 @@ class Brain(Dataset):
                 print('len test1 normal: ', len(test_normal_path))
                 print('len test1 anomaly: ', len(test_anomaly_path))
 
-                test_normal_path = random.sample(test_normal_path, 300)
-                test_anomaly_path = random.sample(test_anomaly_path, 300)
+                test_normal_path = random.sample(test_normal_path, 450)
+                test_anomaly_path = random.sample(test_anomaly_path, 450)
 
 
 
@@ -41,6 +41,12 @@ class Brain(Dataset):
             else:
                 test_normal_path = glob('./brats/dataset/test/normal/*')
                 test_anomaly_path = glob('./brats/dataset/test/anomaly/*')
+
+                print('len test1 normal: ', len(test_normal_path))
+                print('len test1 anomaly: ', len(test_anomaly_path))
+
+                test_normal_path = random.sample(test_normal_path, 450)
+                test_anomaly_path = random.sample(test_anomaly_path, 450)
 
                 self.image_paths = test_normal_path + test_anomaly_path
                 self.test_label = [0] * len(test_normal_path) + [1] * len(test_anomaly_path)
