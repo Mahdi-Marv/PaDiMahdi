@@ -22,6 +22,10 @@ class Isic(Dataset):
 
             print('train set size: ', len(self.image_paths))
 
+            self.image_paths = random.sample(self.image_paths, 2000)
+
+            print('sampled train set size: ', len(self.image_paths))
+
             self.test_label = [0] * len(self.image_paths)
 
         else:
