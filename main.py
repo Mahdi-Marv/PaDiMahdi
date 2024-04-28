@@ -130,6 +130,9 @@ def main():
         test_dataset = Brain(is_train=False, test_id=id)
         test_dataloader = DataLoader(test_dataset, batch_size=32, pin_memory=True)
 
+        visualize_random_samples_from_clean_dataset(train_dataset, 'train set visualize')
+        visualize_random_samples_from_clean_dataset(test_dataset, 'test set visualize')
+
         train_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])
         test_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])
 
