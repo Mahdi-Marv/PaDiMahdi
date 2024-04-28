@@ -44,7 +44,7 @@ class Brain(Dataset):
     def __getitem__(self, idx):
         x = self.image_paths[idx]
         x = Image.open(x).convert('RGB')
-        x = self.transform_x(x)
+        x = self.transform(x)
 
         y = self.test_label[idx]
 
