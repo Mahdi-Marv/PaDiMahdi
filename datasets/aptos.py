@@ -48,7 +48,7 @@ class Aptos(Dataset):
                 self.test_label = [0] * len(test_normal_path) + [1] * len(test_anomaly_path)
             else:
                 df = pd.read_csv('/kaggle/input/ddrdataset/DR_grading.csv')
-                df = df.sample(n=1500)
+                df = df.sample(n=1000)
                 label = df["diagnosis"].to_numpy()
                 path = df["id_code"].to_numpy()
 
