@@ -36,8 +36,8 @@ class Aptos(Dataset):
                 print('len test1 normal: ', len(test_normal_path))
                 print('len test1 anomaly: ', len(test_anomaly_path))
 
-                # test_normal_path = random.sample(test_normal_path, 450)
-                # test_anomaly_path = random.sample(test_anomaly_path, 450)
+                test_normal_path = random.sample(test_normal_path, 600)
+                test_anomaly_path = random.sample(test_anomaly_path, 600)
 
 
 
@@ -48,6 +48,7 @@ class Aptos(Dataset):
                 self.test_label = [0] * len(test_normal_path) + [1] * len(test_anomaly_path)
             else:
                 df = pd.read_csv('/kaggle/input/ddrdataset/DR_grading.csv')
+                df = df.sample(n=1500)
                 label = df["diagnosis"].to_numpy()
                 path = df["id_code"].to_numpy()
 
