@@ -25,8 +25,8 @@ class Brain(Dataset):
                 test_normal_path = glob('./Br35H/dataset/test/normal/*')
                 test_anomaly_path = glob('./Br35H/dataset/test/anomaly/*')
 
-                test_normal_path = random.sample(test_normal_path, 500)
-                test_anomaly_path = random.sample(test_anomaly_path, 500)
+                test_normal_path = random.sample(test_normal_path, 300)
+                test_anomaly_path = random.sample(test_anomaly_path, 300)
 
 
 
