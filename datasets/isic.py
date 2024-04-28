@@ -22,7 +22,7 @@ class Isic(Dataset):
 
             print('train set size: ', len(self.image_paths))
 
-            self.image_paths = random.sample(self.image_paths, 2000)
+            self.image_paths = random.sample(self.image_paths, 1500)
 
             print('sampled train set size: ', len(self.image_paths))
 
