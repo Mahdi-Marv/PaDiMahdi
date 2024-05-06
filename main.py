@@ -22,7 +22,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torchvision.models import wide_resnet50_2, resnet18
 import datasets.mvtec as mvtec
-from datasets.brain import Brain
+from datasets.waterbird import Waterbird, get_waterbird_trainset, get_waterbird_test_set, get_waterbird_just_test_shifted
 
 
 # device setup
@@ -124,10 +124,13 @@ def main():
     class_name = 'brain'
     for id in test_ids:
 
-        train_dataset = Brain(is_train=True)
+        train_dataset = get_waterbird_trainset()
         train_dataloader = DataLoader(train_dataset, batch_size=32, pin_memory=True)
 
-        test_dataset = Brain(is_train=False, test_id=id)
+        if id == 1:
+            test_dataset = get_waterbird_test_set()
+        else:
+            test_dataset = get_waterbird_just_test_shifted()
         test_dataloader = DataLoader(test_dataset, batch_size=32, pin_memory=True)
 
         visualize_random_samples_from_clean_dataset(train_dataset, 'train set visualize')
