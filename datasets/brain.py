@@ -17,7 +17,12 @@ class Brain(Dataset):
         self.cropsize = cropsize
 
         if is_train:
-            self.image_paths = glob('./Br35H/dataset/train/normal/*')
+            node0_train = glob('/kaggle/input/camelyon17-clean/node0/train/normal/*')
+            node1_train = glob('/kaggle/input/camelyon17-clean/node1/train/normal/*')
+            node2_train = glob('/kaggle/input/camelyon17-clean/node2/train/normal/*')
+
+            self.image_paths = node0_train + node1_train + node2_train
+            self.image_paths = random.sample(self.image_paths, 3000)
             # brats_mod = glob('./brats/dataset/train/normal/*')
             #
             # random.seed(1)
@@ -31,14 +36,23 @@ class Brain(Dataset):
 
         else:
             if test_id == 1:
-                test_normal_path = glob('./Br35H/dataset/test/normal/*')
-                test_anomaly_path = glob('./Br35H/dataset/test/anomaly/*')
+                node0_test_normal = glob('/kaggle/input/camelyon17-clean/node0/test/normal/*')
+                node0_test_anomaly = glob('/kaggle/input/camelyon17-clean/node0/test/anomaly/*')
+
+                node1_test_normal = glob('/kaggle/input/camelyon17-clean/node1/test/normal/*')
+                node1_test_anomaly = glob('/kaggle/input/camelyon17-clean/node1/test/anomaly/*')
+
+                node2_test_normal = glob('/kaggle/input/camelyon17-clean/node2/test/normal/*')
+                node2_test_anomaly = glob('/kaggle/input/camelyon17-clean/node2/test/anomaly/*')
+
+                test_normal_path = node0_test_normal + node1_test_normal + node2_test_normal
+                test_anomaly_path = node0_test_anomaly + node1_test_anomaly + node2_test_anomaly
 
                 print('len test1 normal: ', len(test_normal_path))
                 print('len test1 anomaly: ', len(test_anomaly_path))
 
-                test_normal_path = random.sample(test_normal_path, 450)
-                test_anomaly_path = random.sample(test_anomaly_path, 450)
+                test_normal_path = random.sample(test_normal_path, 500)
+                test_anomaly_path = random.sample(test_anomaly_path, 500)
 
 
 
@@ -48,14 +62,20 @@ class Brain(Dataset):
 
                 self.test_label = [0] * len(test_normal_path) + [1] * len(test_anomaly_path)
             else:
-                test_normal_path = glob('./brats/dataset/test/normal/*')
-                test_anomaly_path = glob('./brats/dataset/test/anomaly/*')
+                node3_test_normal = glob('/kaggle/input/camelyon17-clean/node3/test/normal/*')
+                node3_test_anomaly = glob('/kaggle/input/camelyon17-clean/node3/test/anomaly/*')
+
+                node4_test_normal = glob('/kaggle/input/camelyon17-clean/node4/test/normal/*')
+                node4_test_anomaly = glob('/kaggle/input/camelyon17-clean/node4/test/anomaly/*')
+
+                test_normal_path = node3_test_normal + node4_test_normal
+                test_anomaly_path = node3_test_anomaly + node4_test_anomaly
 
                 print('len test1 normal: ', len(test_normal_path))
                 print('len test1 anomaly: ', len(test_anomaly_path))
 
-                test_normal_path = random.sample(test_normal_path, 450)
-                test_anomaly_path = random.sample(test_anomaly_path, 450)
+                test_normal_path = random.sample(test_normal_path, 500)
+                test_anomaly_path = random.sample(test_anomaly_path, 500)
 
                 self.image_paths = test_normal_path + test_anomaly_path
                 self.test_label = [0] * len(test_normal_path) + [1] * len(test_anomaly_path)
