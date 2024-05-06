@@ -20,7 +20,7 @@ class Chest(Dataset):
 
         if is_train:
             self.image_paths = glob('/kaggle/working/train/normal/*')
-            self.image_paths = random.sample(self.image_paths, 1200)
+            self.image_paths = random.sample(self.image_paths, 1400)
             # brats_mod = glob('./brats/dataset/train/normal/*')
             #
             # random.seed(1)
@@ -40,8 +40,8 @@ class Chest(Dataset):
                 print('len test1 normal: ', len(test_normal_path))
                 print('len test1 anomaly: ', len(test_anomaly_path))
 
-                test_normal_path = random.sample(test_normal_path, 500)
-                test_anomaly_path = random.sample(test_anomaly_path, 500)
+                test_normal_path = random.sample(test_normal_path, 600)
+                test_anomaly_path = random.sample(test_anomaly_path, 600)
 
 
 
