@@ -20,7 +20,7 @@ class Chest(Dataset):
 
         if is_train:
             self.image_paths = glob('/kaggle/working/train/normal/*')
-            self.image_paths = random.sample(self.image_paths, 1800)
+            self.image_paths = random.sample(self.image_paths, 1200)
             # brats_mod = glob('./brats/dataset/train/normal/*')
             #
             # random.seed(1)
