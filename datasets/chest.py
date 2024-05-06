@@ -16,6 +16,7 @@ class Chest(Dataset):
         self.is_train = is_train
         self.resize = resize
         self.cropsize = cropsize
+        self.test_id = test_id
 
         if is_train:
             self.image_paths = glob('/kaggle/working/train/normal/*')
