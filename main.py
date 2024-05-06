@@ -22,7 +22,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torchvision.models import wide_resnet50_2, resnet18
 import datasets.mvtec as mvtec
-from datasets.brain import Brain
+from datasets.chest import Chest
 
 
 # device setup
@@ -124,10 +124,10 @@ def main():
     class_name = 'brain'
     for id in test_ids:
 
-        train_dataset = Brain(is_train=True)
+        train_dataset = Chest(is_train=True)
         train_dataloader = DataLoader(train_dataset, batch_size=32, pin_memory=True)
 
-        test_dataset = Brain(is_train=False, test_id=id)
+        test_dataset = Chest(is_train=False, test_id=id)
         test_dataloader = DataLoader(test_dataset, batch_size=32, pin_memory=True)
 
         visualize_random_samples_from_clean_dataset(train_dataset, 'train set visualize')

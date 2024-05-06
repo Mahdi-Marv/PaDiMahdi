@@ -10,14 +10,15 @@ from torchvision import transforms as T
 from glob import glob
 import random
 
-class Brain(Dataset):
+class Chest(Dataset):
     def __init__(self, is_train=True, resize=256, cropsize=224, test_id=1):
         self.is_train = is_train
         self.resize = resize
         self.cropsize = cropsize
 
         if is_train:
-            self.image_paths = glob('./Br35H/dataset/train/normal/*')
+            self.image_paths = glob('/kaggle/working/train/normal/*')
+            self.image_paths = random.sample(self.image_paths, 2000)
             # brats_mod = glob('./brats/dataset/train/normal/*')
             #
             # random.seed(1)
@@ -31,14 +32,14 @@ class Brain(Dataset):
 
         else:
             if test_id == 1:
-                test_normal_path = glob('./Br35H/dataset/test/normal/*')
-                test_anomaly_path = glob('./Br35H/dataset/test/anomaly/*')
+                test_normal_path = glob('/kaggle/working/test/normal/*')
+                test_anomaly_path = glob('/kaggle/working/test/anomaly/*')
 
                 print('len test1 normal: ', len(test_normal_path))
                 print('len test1 anomaly: ', len(test_anomaly_path))
 
-                test_normal_path = random.sample(test_normal_path, 450)
-                test_anomaly_path = random.sample(test_anomaly_path, 450)
+                test_normal_path = random.sample(test_normal_path, 500)
+                test_anomaly_path = random.sample(test_anomaly_path, 500)
 
 
 
@@ -48,14 +49,16 @@ class Brain(Dataset):
 
                 self.test_label = [0] * len(test_normal_path) + [1] * len(test_anomaly_path)
             else:
-                test_normal_path = glob('./brats/dataset/test/normal/*')
-                test_anomaly_path = glob('./brats/dataset/test/anomaly/*')
+                test_normal_path = glob('/kaggle/working/4. Operations Department/Test/1/*')
+                test_anomaly_path = (glob('/kaggle/working/4. Operations Department/Test/0/*') + glob(
+                    '/kaggle/working/4. Operations Department/Test/2/*') +
+                                             glob('/kaggle/working/4. Operations Department/Test/3/*'))
 
                 print('len test1 normal: ', len(test_normal_path))
                 print('len test1 anomaly: ', len(test_anomaly_path))
 
-                test_normal_path = random.sample(test_normal_path, 450)
-                test_anomaly_path = random.sample(test_anomaly_path, 450)
+                # test_normal_path = random.sample(test_normal_path, 450)
+                # test_anomaly_path = random.sample(test_anomaly_path, 450)
 
                 self.image_paths = test_normal_path + test_anomaly_path
                 self.test_label = [0] * len(test_normal_path) + [1] * len(test_anomaly_path)
