@@ -29,8 +29,9 @@ class Brain(Dataset):
                     normal_test = pickle.load(f)
                 with open('./content/mnist_shifted_dataset/test_abnormal_main.pkl', 'rb') as f:
                     abnormal_test = pickle.load(f)
-                normal_test = random.sample(normal_test, 600)
-                abnormal_test = random.sample(abnormal_test, 600)
+
+                normal_test['images'] = random.sample(normal_test['images'], 500)
+                abnormal_test['images'] = random.sample(abnormal_test['images'], 500)
 
                 self.images = normal_test['images'] + abnormal_test['images']
                 self.labels = [0] * len(normal_test['images']) + [1] * len(abnormal_test['images'])
@@ -39,8 +40,8 @@ class Brain(Dataset):
                     normal_test = pickle.load(f)
                 with open('./content/mnist_shifted_dataset/test_abnormal_shifted.pkl', 'rb') as f:
                     abnormal_test = pickle.load(f)
-                normal_test = random.sample(normal_test, 600)
-                abnormal_test = random.sample(abnormal_test, 600)
+                normal_test['images'] = random.sample(normal_test['images'], 500)
+                abnormal_test['images'] = random.sample(abnormal_test['images'], 500)
                 self.images = normal_test['images'] + abnormal_test['images']
                 self.labels = [0] * len(normal_test['images']) + [1] * len(abnormal_test['images'])
 
