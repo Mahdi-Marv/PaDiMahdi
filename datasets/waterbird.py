@@ -42,6 +42,7 @@ class Waterbird(Dataset):
 
         if train:
             self.image_paths = self.normal_paths
+            self.labels = [0] * len(self.image_paths)
         else:
             self.image_paths = []
             if mode == 'bg_all':
