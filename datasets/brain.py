@@ -21,6 +21,7 @@ class Brain(Dataset):
             with open('./content/mnist_shifted_dataset/train_normal.pkl', 'rb') as f:
                 normal_train = pickle.load(f)
             self.images = normal_train['images']
+            self.images = random.sample(self.images, 1400)
             self.labels = [0] * len(self.images)
         else:
             if test_id == 1:
@@ -28,6 +29,9 @@ class Brain(Dataset):
                     normal_test = pickle.load(f)
                 with open('./content/mnist_shifted_dataset/test_abnormal_main.pkl', 'rb') as f:
                     abnormal_test = pickle.load(f)
+                normal_test = random.sample(normal_test, 600)
+                abnormal_test = random.sample(abnormal_test, 600)
+
                 self.images = normal_test['images'] + abnormal_test['images']
                 self.labels = [0] * len(normal_test['images']) + [1] * len(abnormal_test['images'])
             else:
@@ -35,6 +39,8 @@ class Brain(Dataset):
                     normal_test = pickle.load(f)
                 with open('./content/mnist_shifted_dataset/test_abnormal_shifted.pkl', 'rb') as f:
                     abnormal_test = pickle.load(f)
+                normal_test = random.sample(normal_test, 600)
+                abnormal_test = random.sample(abnormal_test, 600)
                 self.images = normal_test['images'] + abnormal_test['images']
                 self.labels = [0] * len(normal_test['images']) + [1] * len(abnormal_test['images'])
 
@@ -51,6 +57,8 @@ class Brain(Dataset):
     def __getitem__(self, idx):
         x = self.images[idx]
         # x = Image.open(x).convert('RGB')
+        x= Image.fromarray(x.transpose(1, 2, 0))  # Assuming x is in the format (C, H, W)
+
         x = self.transform(x)
 
         y = self.labels[idx]
