@@ -9,6 +9,7 @@ from torch.utils.data import Dataset
 from torchvision import transforms as T
 from glob import glob
 import random
+import pydicom
 
 class Chest(Dataset):
     def __init__(self, is_train=True, resize=256, cropsize=224, test_id=1):
@@ -72,6 +73,13 @@ class Chest(Dataset):
     def __len__(self):
         return len(self.image_paths)
     def __getitem__(self, idx):
+        if self.test_id==1 or self.is_train:
+            dicom = pydicom.dcmread(self.image_paths[idx])
+            image = dicom.pixel_array
+            image = Image.fromarray(image).convert('RGB')
+            image = self.transform(image)
+            y = self.test_label[idx]
+            return image, y, 'none'
         x = self.image_paths[idx]
         x = Image.open(x).convert('RGB')
         x = self.transform(x)
