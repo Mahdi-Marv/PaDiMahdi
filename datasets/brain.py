@@ -22,7 +22,7 @@ class Brain(Dataset):
             node2_train = glob('/kaggle/input/camelyon17-clean/node2/train/normal/*')
 
             self.image_paths = node0_train + node1_train + node2_train
-            self.image_paths = random.sample(self.image_paths, 3000)
+            self.image_paths = random.sample(self.image_paths, 1400)
             # brats_mod = glob('./brats/dataset/train/normal/*')
             #
             # random.seed(1)
@@ -51,8 +51,8 @@ class Brain(Dataset):
                 print('len test1 normal: ', len(test_normal_path))
                 print('len test1 anomaly: ', len(test_anomaly_path))
 
-                test_normal_path = random.sample(test_normal_path, 500)
-                test_anomaly_path = random.sample(test_anomaly_path, 500)
+                test_normal_path = random.sample(test_normal_path, 600)
+                test_anomaly_path = random.sample(test_anomaly_path, 600)
 
 
 
@@ -74,8 +74,8 @@ class Brain(Dataset):
                 print('len test1 normal: ', len(test_normal_path))
                 print('len test1 anomaly: ', len(test_anomaly_path))
 
-                test_normal_path = random.sample(test_normal_path, 500)
-                test_anomaly_path = random.sample(test_anomaly_path, 500)
+                test_normal_path = random.sample(test_normal_path, 600)
+                test_anomaly_path = random.sample(test_anomaly_path, 600)
 
                 self.image_paths = test_normal_path + test_anomaly_path
                 self.test_label = [0] * len(test_normal_path) + [1] * len(test_anomaly_path)
