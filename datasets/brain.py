@@ -9,6 +9,7 @@ from torch.utils.data import Dataset
 from torchvision import transforms as T
 from glob import glob
 import random
+import pickle
 
 class Brain(Dataset):
     def __init__(self, is_train=True, resize=256, cropsize=224, test_id=1):
@@ -17,48 +18,27 @@ class Brain(Dataset):
         self.cropsize = cropsize
 
         if is_train:
-            self.image_paths = glob('./Br35H/dataset/train/normal/*')
-            # brats_mod = glob('./brats/dataset/train/normal/*')
-            #
-            # random.seed(1)
-            #
-            # random_brats_images = random.sample(brats_mod, 150)
-            #
-            # print('added 150 normal brat images')
-            #
-            # self.image_paths.extend(random_brats_images)
-            self.test_label = [0] * len(self.image_paths)
-
+            with open('./content/mnist_shifted_dataset/train_normal.pkl', 'rb') as f:
+                normal_train = pickle.load(f)
+            self.images = normal_train['images']
+            self.labels = [0] * len(self.images)
         else:
             if test_id == 1:
-                test_normal_path = glob('./Br35H/dataset/test/normal/*')
-                test_anomaly_path = glob('./Br35H/dataset/test/anomaly/*')
-
-                print('len test1 normal: ', len(test_normal_path))
-                print('len test1 anomaly: ', len(test_anomaly_path))
-
-                test_normal_path = random.sample(test_normal_path, 450)
-                test_anomaly_path = random.sample(test_anomaly_path, 450)
-
-
-
-                self.image_paths = test_normal_path + test_anomaly_path
-
-                print('len test1 set: ', len(self.image_paths))
-
-                self.test_label = [0] * len(test_normal_path) + [1] * len(test_anomaly_path)
+                with open('./content/mnist_shifted_dataset/test_normal_main.pkl', 'rb') as f:
+                    normal_test = pickle.load(f)
+                with open('./content/mnist_shifted_dataset/test_abnormal_main.pkl', 'rb') as f:
+                    abnormal_test = pickle.load(f)
+                self.images = normal_test['images'] + abnormal_test['images']
+                self.labels = [0] * len(normal_test['images']) + [1] * len(abnormal_test['images'])
             else:
-                test_normal_path = glob('./brats/dataset/test/normal/*')
-                test_anomaly_path = glob('./brats/dataset/test/anomaly/*')
+                with open('./content/mnist_shifted_dataset/test_normal_shifted.pkl', 'rb') as f:
+                    normal_test = pickle.load(f)
+                with open('./content/mnist_shifted_dataset/test_abnormal_shifted.pkl', 'rb') as f:
+                    abnormal_test = pickle.load(f)
+                self.images = normal_test['images'] + abnormal_test['images']
+                self.labels = [0] * len(normal_test['images']) + [1] * len(abnormal_test['images'])
 
-                print('len test1 normal: ', len(test_normal_path))
-                print('len test1 anomaly: ', len(test_anomaly_path))
 
-                test_normal_path = random.sample(test_normal_path, 450)
-                test_anomaly_path = random.sample(test_anomaly_path, 450)
-
-                self.image_paths = test_normal_path + test_anomaly_path
-                self.test_label = [0] * len(test_normal_path) + [1] * len(test_anomaly_path)
 
         self.transform = T.Compose([T.Resize(resize, Image.ANTIALIAS),
                                       T.CenterCrop(cropsize),
@@ -67,12 +47,12 @@ class Brain(Dataset):
                                                   std=[0.229, 0.224, 0.225])])
 
     def __len__(self):
-        return len(self.image_paths)
+        return len(self.images)
     def __getitem__(self, idx):
-        x = self.image_paths[idx]
-        x = Image.open(x).convert('RGB')
+        x = self.images[idx]
+        # x = Image.open(x).convert('RGB')
         x = self.transform(x)
 
-        y = self.test_label[idx]
+        y = self.labels[idx]
 
         return x, y, 'None'
