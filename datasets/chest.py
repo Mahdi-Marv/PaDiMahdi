@@ -51,10 +51,8 @@ class Chest(Dataset):
 
                 self.test_label = [0] * len(test_normal_path) + [1] * len(test_anomaly_path)
             else:
-                test_normal_path = glob('/kaggle/working/4. Operations Department/Test/1/*')
-                test_anomaly_path = (glob('/kaggle/working/4. Operations Department/Test/0/*') + glob(
-                    '/kaggle/working/4. Operations Department/Test/2/*') +
-                                             glob('/kaggle/working/4. Operations Department/Test/3/*'))
+                test_normal_path = glob('/kaggle/working/chest_xray/test/NORMAL/*')
+                test_anomaly_path = glob('/kaggle/working/chest_xray/test/PNEUMONIA/*')
 
                 print('len test1 normal: ', len(test_normal_path))
                 print('len test1 anomaly: ', len(test_anomaly_path))
